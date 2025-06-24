@@ -1,5 +1,6 @@
 package com.example.demo.domain.user.controller;
 
+import com.example.demo.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Controller;
@@ -7,13 +8,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/user")
+@RequestMapping("/login")
 @Log4j2
 @RequiredArgsConstructor
-public class UserController {
+public class LoginController {
 
-    private final UserController userController;
+    private final UserService userService;
 
-    @GetMapping("/list")
-    public void userList()
+    public LoginController(UserService userService) {
+        this.userService = userService;
+    }
 }
