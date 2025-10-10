@@ -23,20 +23,20 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponseDTO login(UserLoginRequestDTO userLoginRequestDTO) {
-        User user = userRepository.findByNickName(userLoginRequestDTO.getUsername())
+        User user = userRepository.findByUsername(userLoginRequestDTO.getUsername())
             .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다."));
 
-        if (!passwordEncoder.matches(userLoginRequestDTO.getPassword(), userLoginRequestDTO.getPassword())) {
+        if (!passwordEncoder.matches(userLoginRequestDTO.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
 
-        return new UserResponseDTO(user.getId(), user.getUsername(), user.getPassword(), user.getEmail(), user.getNickName());
+        return new UserResponseDTO(user.getId(), user.getUsername(), user.getEmail(), user.getNickName());
     }
 
     @Override
     @Transactional
     public UserResponseDTO register(UserSignUpRequestDTO userSignUpRequestDTO) {
-        if (userRepository.findByNickName(userSignUpRequestDTO.getUsername()).isPresent()) {
+        if (userRepository.findByUsername(userSignUpRequestDTO.getUsername()).isPresent()) {
            throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
         }
 
@@ -46,16 +46,16 @@ public class UserServiceImpl implements UserService {
 
         String encodedPassword = passwordEncoder.encode(userSignUpRequestDTO.getPassword());
 
-        User user = new User(
-                userSignUpRequestDTO.getUsername(),
-                encodedPassword,
-                userSignUpRequestDTO.getEmail(),
-                userSignUpRequestDTO.getNickName()
-        );
+        User user = User.builder()
+                .username(userSignUpRequestDTO.getUsername())
+                .password(encodedPassword)
+                .email(userSignUpRequestDTO.getEmail())
+                .nickName(userSignUpRequestDTO.getNickName())
+                .build();
 
         User savedUser = userRepository.save(user);
 
-        return new UserResponseDTO(savedUser.getId(), savedUser.getUsername(), savedUser.getPassword(), savedUser.getEmail(), savedUser.getNickName());
+        return new UserResponseDTO(savedUser.getId(), savedUser.getUsername(), savedUser.getEmail(), savedUser.getNickName());
 
     }
 
@@ -65,19 +65,17 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(Id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
-        if (!user.getEmail().equals(userUpdateRequestDTO.getEmail())) {
+        if (userUpdateRequestDTO.getEmail() != null && !userUpdateRequestDTO.getEmail().isBlank() && !user.getEmail().equals(userUpdateRequestDTO.getEmail())) {
             if (userRepository.findByEmail(userUpdateRequestDTO.getEmail()).isPresent()) {
-                throw new  IllegalArgumentException("사용중인 이메일입니다..");
+                throw new IllegalArgumentException("사용중인 이메일입니다.");
             }
             user.setEmail(userUpdateRequestDTO.getEmail());
         }
 
         if (userUpdateRequestDTO.getNickname() != null && !userUpdateRequestDTO.getNickname().isBlank()) {
-                user.setNickName(userUpdateRequestDTO.getNickname());
+            user.setNickName(userUpdateRequestDTO.getNickname());
         }
 
-        User updatedUser = userRepository.save(user);
-
-        return new UserResponseDTO(updatedUser.getId(), user.getUsername(), user.getPassword(), user.getEmail(), user.getNickName());
+        return new UserResponseDTO(user.getId(), user.getUsername(), user.getEmail(), user.getNickName());
     }
 }
