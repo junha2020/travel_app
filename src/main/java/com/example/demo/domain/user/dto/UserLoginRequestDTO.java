@@ -11,7 +11,7 @@ import lombok.*;
 public class UserLoginRequestDTO {
 
     @NotBlank(message = "아이디를 입력하십시오.")
-    private String username;
+    private String userName;
 
     @NotBlank(message = "비밀번호를 입력하십시오.")
     private String password;

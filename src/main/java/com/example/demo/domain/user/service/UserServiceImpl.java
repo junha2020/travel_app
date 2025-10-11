@@ -23,20 +23,20 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponseDTO login(UserLoginRequestDTO userLoginRequestDTO) {
-        User user = userRepository.findByUsername(userLoginRequestDTO.getUsername())
+        User user = userRepository.findByUsername(userLoginRequestDTO.getUserName())
             .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다."));
 
         if (!passwordEncoder.matches(userLoginRequestDTO.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
 
-        return new UserResponseDTO(user.getId(), user.getUsername(), user.getEmail(), user.getNickName());
+        return new UserResponseDTO(user.getId(), user.getUserName(), user.getEmail(), user.getNickName());
     }
 
     @Override
     @Transactional
     public UserResponseDTO register(UserSignUpRequestDTO userSignUpRequestDTO) {
-        if (userRepository.findByUsername(userSignUpRequestDTO.getUsername()).isPresent()) {
+        if (userRepository.findByUsername(userSignUpRequestDTO.getUserName()).isPresent()) {
            throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
         }
 
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
         String encodedPassword = passwordEncoder.encode(userSignUpRequestDTO.getPassword());
 
         User user = User.builder()
-                .username(userSignUpRequestDTO.getUsername())
+                .userName(userSignUpRequestDTO.getUserName())
                 .password(encodedPassword)
                 .email(userSignUpRequestDTO.getEmail())
                 .nickName(userSignUpRequestDTO.getNickName())
@@ -55,7 +55,7 @@ public class UserServiceImpl implements UserService {
 
         User savedUser = userRepository.save(user);
 
-        return new UserResponseDTO(savedUser.getId(), savedUser.getUsername(), savedUser.getEmail(), savedUser.getNickName());
+        return new UserResponseDTO(savedUser.getId(), savedUser.getUserName(), savedUser.getEmail(), savedUser.getNickName());
 
     }
 
@@ -72,10 +72,10 @@ public class UserServiceImpl implements UserService {
             user.setEmail(userUpdateRequestDTO.getEmail());
         }
 
-        if (userUpdateRequestDTO.getNickname() != null && !userUpdateRequestDTO.getNickname().isBlank()) {
-            user.setNickName(userUpdateRequestDTO.getNickname());
+        if (userUpdateRequestDTO.getNickName() != null && !userUpdateRequestDTO.getNickName().isBlank()) {
+            user.setNickName(userUpdateRequestDTO.getNickName());
         }
 
-        return new UserResponseDTO(user.getId(), user.getUsername(), user.getEmail(), user.getNickName());
+        return new UserResponseDTO(user.getId(), user.getUserName(), user.getEmail(), user.getNickName());
     }
 }

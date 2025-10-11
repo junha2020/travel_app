@@ -18,7 +18,7 @@ public class User {
     private Long id;
 
     @Column(length = 15, nullable = false)
-    private String username;
+    private String userName;
 
     @Column(length = 100, nullable = false)
     private String password;
@@ -30,8 +30,8 @@ public class User {
     private String nickName;
 
     @Builder
-    public User(String username, String password, String email, String nickName) {
-        this.username = username;
+    public User(String userName, String password, String email, String nickName) {
+        this.userName = userName;
         this.password = password;
         this.email = email;
         this.nickName = nickName;
