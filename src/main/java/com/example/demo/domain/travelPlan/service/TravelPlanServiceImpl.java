@@ -31,18 +31,34 @@ public class TravelPlanServiceImpl implements TravelPlanService {
 
         TravelPlan savePlan = travelPlanRepository.save(travelPlan);
 
-        return new TravelPlanResponseDTO(savePlan.getId(), savePlan.getTitle(), savePlan.getStartDate(), savePlan.getEndDate(), savePlan.getUserId(), savePlan.isPublic(),savePlan.getCreatedAt());
+        return TravelPlanResponseDTO.builder()
+                .id(savePlan.getId())
+                .title(savePlan.getTitle())
+                .startDate(savePlan.getStartDate())
+                .endDate(savePlan.getEndDate())
+                .userId(savePlan.getUserId())
+                .isPublic(savePlan.isPublic())
+                .createdAt(savePlan.getCreatedAt())
+                .build();
     }
 
     @Override
     @Transactional
     public TravelPlanResponseDTO update(Long Id, TravelPlanRequestDTO travelPlanRequestDTO) {
-        TravelPlan travelPlan = travelPlanRepository.findById(Id)
+        TravelPlan plan = travelPlanRepository.findById(Id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
 
-        travelPlan.update(travelPlanRequestDTO.getTitle(), travelPlanRequestDTO.getStartDate(), travelPlanRequestDTO.getEndDate(), travelPlanRequestDTO.isPublic());
+        plan.update(travelPlanRequestDTO.getTitle(), travelPlanRequestDTO.getStartDate(), travelPlanRequestDTO.getEndDate(), travelPlanRequestDTO.isPublic());
 
-        return new TravelPlanResponseDTO(travelPlan.getId(), travelPlan.getTitle(), travelPlan.getStartDate(), travelPlan.getEndDate(), travelPlan.getUserId(), travelPlan.isPublic(), travelPlan.getUpdatedAt());
+        return TravelPlanResponseDTO.builder()
+                .id(plan.getId())
+                .title(plan.getTitle())
+                .startDate(plan.getStartDate())
+                .endDate(plan.getEndDate())
+                .userId(plan.getUserId())
+                .isPublic(plan.isPublic())
+                .createdAt(plan.getCreatedAt())
+                .build();
     }
 
     @Override
@@ -75,7 +91,15 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         List<TravelPlan> plans = travelPlanRepository.findByUserId(userId);
 
         return plans.stream()
-                .map(plan -> new TravelPlanResponseDTO(plan.getId(), plan.getTitle(), plan.getStartDate(), plan.getEndDate(), plan.getUserId(), plan.isPublic(), plan.getCreatedAt()))
+                .map(plan -> TravelPlanResponseDTO.builder()
+                        .id(plan.getId())
+                        .title(plan.getTitle())
+                        .startDate(plan.getStartDate())
+                        .endDate(plan.getEndDate())
+                        .userId(plan.getUserId())
+                        .isPublic(plan.isPublic())
+                        .createdAt(plan.getCreatedAt())
+                        .build())
                 .collect(Collectors.toList());
     }
 }

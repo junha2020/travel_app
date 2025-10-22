@@ -23,12 +23,4 @@ public class TravelPlanResponseDTO {
     private boolean isPublic;
     private LocalDateTime createdAt;
 
-    public TravelPlanResponseDTO(TravelPlan plan) {
-        this.id = plan.getId();
-        this.title = plan.getTitle();
-        this.startDate = plan.getStartDate();
-        this.endDate = plan.getEndDate();
-        this.userId = plan.getUserId();
-    }
-
 }

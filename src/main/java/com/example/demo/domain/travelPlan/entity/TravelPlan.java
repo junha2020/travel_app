@@ -39,6 +39,7 @@ public class TravelPlan {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt; // 생성 시간
 
+    @CreationTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt; // 최종 수정 시간
 

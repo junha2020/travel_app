@@ -23,7 +23,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponseDTO login(UserLoginRequestDTO userLoginRequestDTO) {
-        User user = userRepository.findByUsername(userLoginRequestDTO.getUserName())
+        User user = userRepository.findByUserName(userLoginRequestDTO.getUserName())
             .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다."));
 
         if (!passwordEncoder.matches(userLoginRequestDTO.getPassword(), user.getPassword())) {
@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDTO register(UserSignUpRequestDTO userSignUpRequestDTO) {
-        if (userRepository.findByUsername(userSignUpRequestDTO.getUserName()).isPresent()) {
+        if (userRepository.findByUserName(userSignUpRequestDTO.getUserName()).isPresent()) {
            throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
         }
 
