@@ -75,7 +75,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         List<TravelPlan> plans = travelPlanRepository.findByUserId(userId);
 
         return plans.stream()
-                .map(plan -> )
+                .map(plan -> new TravelPlanResponseDTO(plan.getId(), plan.getTitle(), plan.getStartDate(), plan.getEndDate(), plan.getUserId(), plan.isPublic(), plan.getCreatedAt()))
                 .collect(Collectors.toList());
     }
 }

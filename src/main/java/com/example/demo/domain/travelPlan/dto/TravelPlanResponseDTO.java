@@ -1,5 +1,6 @@
 package com.example.demo.domain.travelPlan.dto;
 
+import com.example.demo.domain.travelPlan.entity.TravelPlan;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,5 +22,13 @@ public class TravelPlanResponseDTO {
     private Long userId;
     private boolean isPublic;
     private LocalDateTime createdAt;
+
+    public TravelPlanResponseDTO(TravelPlan plan) {
+        this.id = plan.getId();
+        this.title = plan.getTitle();
+        this.startDate = plan.getStartDate();
+        this.endDate = plan.getEndDate();
+        this.userId = plan.getUserId();
+    }
 
 }
