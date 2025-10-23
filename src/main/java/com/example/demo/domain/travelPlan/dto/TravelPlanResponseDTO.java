@@ -1,6 +1,5 @@
 package com.example.demo.domain.travelPlan.dto;
 
-import com.example.demo.domain.travelPlan.entity.TravelPlan;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
