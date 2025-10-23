@@ -1,5 +1,6 @@
 package com.example.demo.domain.travelPlan.entity;
 
+import com.example.demo.domain.placePlan.entitiy.PlanPlace;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,6 +10,8 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -43,6 +46,9 @@ public class TravelPlan {
     @Column(nullable = false)
     private LocalDateTime updatedAt; // 최종 수정 시간
 
+    @OneToMany(mappedBy = "travelPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PlanPlace> planPlace = new ArrayList<>();
+
     @Builder
     public TravelPlan(String title, LocalDate startDate, LocalDate endDate, Long userId, boolean isPublic) {
         this.title = title;
@@ -57,5 +63,15 @@ public class TravelPlan {
         this.startDate = startDate;
         this.endDate = endDate;
         this.isPublic = isPublic;
+    }
+
+    public void addPlanPlace(PlanPlace planPlace) {
+        planPlace.add(planPlace);
+        planPlace.setTravelPlan(this);
+    }
+
+    public void removePlanPlace(PlanPlace planPlace) {
+        planPlace.remove(planPlace);
+        planPlace.setTravelPlan(null);
     }
 }
