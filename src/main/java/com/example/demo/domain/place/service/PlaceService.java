@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface PlaceService {
 
-    PlaceResponseDTO createPlan(PlaceRequestDTO requestDTO);
+    PlaceResponseDTO createPlace(PlaceRequestDTO requestDTO);
     PlaceResponseDTO getPlaceById(Long placeId);
     List<PlaceResponseDTO> searchPlacesByName(String name);
     void deletePlace(Long placeId);

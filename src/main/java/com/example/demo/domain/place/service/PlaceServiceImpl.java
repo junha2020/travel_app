@@ -20,7 +20,7 @@ public class PlaceServiceImpl implements PlaceService {
 
     @Override
     @Transactional
-    public PlaceResponseDTO createPlan(PlaceRequestDTO requestDTO) {
+    public PlaceResponseDTO createPlace(PlaceRequestDTO requestDTO) {
         Place place = Place.builder()
                 .name(requestDTO.getName())
                 .address(requestDTO.getAddress())

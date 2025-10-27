@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import com.example.demo.domain.travelPlan.dto.PlaceInPlanDTO;
 
 @Data
 @Builder
@@ -21,5 +23,7 @@ public class TravelPlanResponseDTO {
     private Long userId;
     private boolean isPublic;
     private LocalDateTime createdAt;
+
+    private List<PlaceInPlanDTO> places;
 
 }
