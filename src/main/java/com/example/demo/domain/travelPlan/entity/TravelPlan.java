@@ -66,12 +66,12 @@ public class TravelPlan {
     }
 
     public void addPlanPlace(PlanPlace planPlace) {
-        planPlace.add(planPlace);
+        this.planPlace.add(planPlace);
         planPlace.setTravelPlan(this);
     }
 
     public void removePlanPlace(PlanPlace planPlace) {
-        planPlace.remove(planPlace);
+        this.planPlace.remove(planPlace);
         planPlace.setTravelPlan(null);
     }
 }

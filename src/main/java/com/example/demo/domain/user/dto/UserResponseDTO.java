@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class UserResponseDTO {
 
     private Long userid;
-    private String username;
+    private String userName;
     private String email;
     private String nickName;
 
