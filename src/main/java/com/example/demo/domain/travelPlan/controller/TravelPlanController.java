@@ -1,5 +1,6 @@
 package com.example.demo.domain.travelPlan.controller;
 
+import com.example.demo.domain.travelPlan.dto.AddPlaceRequestDTO;
 import com.example.demo.domain.travelPlan.dto.TravelPlanRequestDTO;
 import com.example.demo.domain.travelPlan.dto.TravelPlanResponseDTO;
 import com.example.demo.domain.travelPlan.service.TravelPlanService;
@@ -51,5 +52,19 @@ public class TravelPlanController {
     public ResponseEntity<TravelPlanResponseDTO> deletePlan(@PathVariable Long planId) {
         travelPlanService.delete(planId);
         return ResponseEntity.noContent().build(); // 삭제 성공 시 204 No Content 응답
+    }
+
+    // 계획에 장소 추가
+    @PostMapping("/{planId}/places")
+    public ResponseEntity<Void> addPlace(@PathVariable Long planId, @Valid @RequestBody AddPlaceRequestDTO requestDTO) {
+        travelPlanService.addPlaceToPlan(planId, requestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    // 계획에서 장소 삭제
+    @DeleteMapping("/{planId}/places/{planPlaceId}")
+    public ResponseEntity<Void> removePlace(@PathVariable Long planId, @PathVariable Long planPlaceId) {
+        travelPlanService.removePlaceFromPlan(planId, planPlaceId);
+        return ResponseEntity.noContent().build();
     }
 }
