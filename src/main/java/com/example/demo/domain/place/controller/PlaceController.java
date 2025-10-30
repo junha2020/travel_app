@@ -25,6 +25,13 @@ public class PlaceController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
+    // 모든 장소 목록 조회 API
+    @GetMapping
+    public ResponseEntity<List<PlaceResponseDTO>> getAllPlaces() {
+        List<PlaceResponseDTO> responseDTOList = placeService.getAllPlaces();
+        return ResponseEntity.ok(responseDTOList);
+    }
+
     // 특정 ID로 장소 조회 API
     @GetMapping("/{placeId}")
     public ResponseEntity<PlaceResponseDTO> getPlaceById(@PathVariable Long placeId) {

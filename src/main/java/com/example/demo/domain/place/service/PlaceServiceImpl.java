@@ -57,4 +57,13 @@ public class PlaceServiceImpl implements PlaceService {
         // TODO: 이 장소 참조하는 PlanPlace가 있는지 확인 후 지우는 로직도 추가해야 함
         placeRepository.deleteById(placeId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PlaceResponseDTO> getAllPlaces() {
+        List<Place> places = placeRepository.findAll();
+        return places.stream()
+                .map(PlaceResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+    }
 }

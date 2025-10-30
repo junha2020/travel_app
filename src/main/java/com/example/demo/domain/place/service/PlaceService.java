@@ -11,4 +11,6 @@ public interface PlaceService {
     PlaceResponseDTO getPlaceById(Long placeId);
     List<PlaceResponseDTO> searchPlacesByName(String name);
     void deletePlace(Long placeId);
+
+    List<PlaceResponseDTO> getAllPlaces();
 }
