@@ -46,4 +46,10 @@ public class UserController {
         UserResponseDTO responseDTO = userService.modify(userId, updateRequestDTO);
         return ResponseEntity.ok(responseDTO);
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDTO> getMe(@RequestParam Long userId) {
+        UserResponseDTO responseDTO = userService.getUserById(userId);
+        return ResponseEntity.ok(responseDTO);
+    }
 }

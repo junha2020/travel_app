@@ -12,4 +12,5 @@ public interface UserService {
     public UserResponseDTO register(UserSignUpRequestDTO userSignUpRequestDTO);
     public UserResponseDTO modify (Long Id, UserUpdateRequestDTO userUpdateRequestDTO);
 
+    public UserResponseDTO getUserById(Long userId);
 }

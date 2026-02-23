@@ -78,4 +78,14 @@ public class UserServiceImpl implements UserService {
 
         return new UserResponseDTO(user.getId(), user.getUserName(), user.getEmail(), user.getNickName());
     }
+
+    @Override
+    public UserResponseDTO getUserById(Long userId) {
+        // DB에서 유저 찾기
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없음"));
+
+        // DTO로 변환해 리턴
+        return new UserResponseDTO(user.getId(), user.getUserName(), user.getEmail(), user.getNickName());
+    }
 }
