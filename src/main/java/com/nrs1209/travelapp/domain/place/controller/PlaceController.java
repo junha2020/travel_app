@@ -40,7 +40,7 @@ public class PlaceController {
     }
 
     // 이름으로 장소 검색 API
-    @GetMapping("/search")
+    @GetMapping("/search/{name}")
     public ResponseEntity<List<PlaceResponseDTO>> getPlacesByName(@PathVariable String name) {
         List<PlaceResponseDTO> responseDTOList = placeService.searchPlacesByName(name);
         return ResponseEntity.ok(responseDTOList);

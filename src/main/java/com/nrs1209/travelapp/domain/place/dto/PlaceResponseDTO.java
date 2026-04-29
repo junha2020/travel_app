@@ -17,6 +17,10 @@ public class PlaceResponseDTO {
     private String address;
     private Double latitude;
     private Double longitude;
+    private String imageUrl;
+    private String description;
+    private String category;
+    private Double rating;
 
     public static PlaceResponseDTO fromEntity(Place place) {
         return PlaceResponseDTO.builder()
@@ -25,6 +29,10 @@ public class PlaceResponseDTO {
                 .address(place.getAddress())
                 .latitude(place.getLatitude())
                 .longitude(place.getLongitude())
+                .imageUrl(place.getImageUrl())
+                .description(place.getDescription())
+                .category(place.getCategory())
+                .rating(place.getRating())
                 .build();
     }
 

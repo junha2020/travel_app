@@ -26,6 +26,10 @@ public class PlaceServiceImpl implements PlaceService {
                 .address(requestDTO.getAddress())
                 .latitude(requestDTO.getLatitude())
                 .longitude(requestDTO.getLongitude())
+                .imageUrl(requestDTO.getImageUrl())
+                .description(requestDTO.getDescription())
+                .category(requestDTO.getCategory())
+                .rating(requestDTO.getRating())
                 .build();
 
         Place savedPlace = placeRepository.save(place);

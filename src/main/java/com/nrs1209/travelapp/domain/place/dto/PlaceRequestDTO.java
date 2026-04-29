@@ -18,4 +18,13 @@ public class PlaceRequestDTO {
     private Double latitude;
     private Double longitude;
 
+    private String imageUrl;
+
+    private String description;
+
+    @NotBlank(message = "장소 카테고리는 필수 입력 값입니다.")
+    private String category;
+
+    private Double rating;
+
 }

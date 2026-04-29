@@ -20,17 +20,35 @@ public class Place {
     @Column(length = 50, nullable = false)
     private String name;
 
-    @Column(length = 100)
+    @Column(length = 255)
     private String address;
 
-    private double latitude;
-    private double longitude;
+    @Column(nullable = true)
+    private Double latitude;
+
+    @Column(nullable = true)
+    private Double longitude;
+
+    @Column(length = 500)
+    private String imageUrl;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(length = 50)
+    private String category;
+
+    private Double rating;
 
     @Builder
-    public Place(String name, String address, double latitude, double longitude) {
+    public Place(String name, String address, Double latitude, Double longitude, String imageUrl, String description, String category, Double rating) {
         this.name = name;
         this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.imageUrl = imageUrl;
+        this.description = description;
+        this.category = category;
+        this.rating = rating;
     }
 }
