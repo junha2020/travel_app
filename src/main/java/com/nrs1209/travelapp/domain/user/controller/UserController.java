@@ -1,9 +1,6 @@
 package com.nrs1209.travelapp.domain.user.controller;
 
-import com.nrs1209.travelapp.domain.user.dto.UserLoginRequestDTO;
-import com.nrs1209.travelapp.domain.user.dto.UserResponseDTO;
-import com.nrs1209.travelapp.domain.user.dto.UserSignUpRequestDTO;
-import com.nrs1209.travelapp.domain.user.dto.UserUpdateRequestDTO;
+import com.nrs1209.travelapp.domain.user.dto.*;
 import com.nrs1209.travelapp.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -51,5 +48,19 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> getMe(@RequestParam Long userId) {
         UserResponseDTO responseDTO = userService.getUserById(userId);
         return ResponseEntity.ok(responseDTO);
+    }
+
+    @PostMapping("/find-username")
+    public ResponseEntity<FindUsernameResponseDTO> findUsername(
+            @Valid @RequestBody FindUsernameRequestDTO requestDTO) {
+        FindUsernameResponseDTO response = userService.findUsername(requestDTO);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ResetPasswordResponseDTO> resetPassword(
+            @Valid @RequestBody ResetPasswordRequestDTO requestDTO) {
+        ResetPasswordResponseDTO response = userService.resetPassword(requestDTO);
+        return ResponseEntity.ok(response);
     }
 }

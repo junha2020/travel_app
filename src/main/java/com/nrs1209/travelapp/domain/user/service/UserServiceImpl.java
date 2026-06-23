@@ -1,9 +1,6 @@
 package com.nrs1209.travelapp.domain.user.service;
 
-import com.nrs1209.travelapp.domain.user.dto.UserLoginRequestDTO;
-import com.nrs1209.travelapp.domain.user.dto.UserResponseDTO;
-import com.nrs1209.travelapp.domain.user.dto.UserSignUpRequestDTO;
-import com.nrs1209.travelapp.domain.user.dto.UserUpdateRequestDTO;
+import com.nrs1209.travelapp.domain.user.dto.*;
 import com.nrs1209.travelapp.domain.user.entity.User;
 import com.nrs1209.travelapp.domain.user.repository.UserRepository;
 import com.nrs1209.travelapp.global.security.JwtUtil;
@@ -11,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -110,5 +109,30 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .nickName(user.getNickName())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FindUsernameResponseDTO findUsername(FindUsernameRequestDTO requestDTO) {
+        User user = userRepository.findByNickNameAndEmail(requestDTO.getNickName(), requestDTO.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("입력하신 정보와 일치하는 회원이 없습니다."));
+
+        return new FindUsernameResponseDTO(user.getUserName());
+    }
+
+    @Override
+    @Transactional
+    public ResetPasswordResponseDTO resetPassword(ResetPasswordRequestDTO requestDTO) {
+        User user = userRepository.findByEmail(requestDTO.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("해당 이메일로 등록된 회원이 없습니다."));
+
+        // 8자리의 랜덤 임시 비밀번호 생성
+        String tempPassword = UUID.randomUUID().toString().substring(0, 8);
+
+        // 중요: 로그인 검증 시 passwordEncoder를 사용하니, 임시 비밀번호도 암호화 해 저장
+        String encodedPassword = passwordEncoder.encode(tempPassword);
+        user.setPassword(encodedPassword); // 더티 체킹에 의해 자동 반영
+
+        return new ResetPasswordResponseDTO("임시 비밀번호가 발급되었습니다.", tempPassword);
     }
 }

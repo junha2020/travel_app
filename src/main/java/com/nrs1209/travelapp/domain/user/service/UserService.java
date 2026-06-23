@@ -1,9 +1,6 @@
 package com.nrs1209.travelapp.domain.user.service;
 
-import com.nrs1209.travelapp.domain.user.dto.UserLoginRequestDTO;
-import com.nrs1209.travelapp.domain.user.dto.UserResponseDTO;
-import com.nrs1209.travelapp.domain.user.dto.UserSignUpRequestDTO;
-import com.nrs1209.travelapp.domain.user.dto.UserUpdateRequestDTO;
+import com.nrs1209.travelapp.domain.user.dto.*;
 
 public interface UserService {
 
@@ -12,4 +9,7 @@ public interface UserService {
     public UserResponseDTO modify (Long Id, UserUpdateRequestDTO userUpdateRequestDTO);
 
     public UserResponseDTO getUserById(Long userId);
+
+    FindUsernameResponseDTO findUsername(FindUsernameRequestDTO requestDTO);
+    ResetPasswordResponseDTO resetPassword(ResetPasswordRequestDTO requestDTO);
 }
