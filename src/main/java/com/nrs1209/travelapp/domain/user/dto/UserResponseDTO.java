@@ -15,5 +15,6 @@ public class UserResponseDTO {
     private String userName;
     private String email;
     private String nickName;
+    private String token;
 
 }

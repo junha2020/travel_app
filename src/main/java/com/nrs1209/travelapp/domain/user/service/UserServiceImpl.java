@@ -6,6 +6,7 @@ import com.nrs1209.travelapp.domain.user.dto.UserSignUpRequestDTO;
 import com.nrs1209.travelapp.domain.user.dto.UserUpdateRequestDTO;
 import com.nrs1209.travelapp.domain.user.entity.User;
 import com.nrs1209.travelapp.domain.user.repository.UserRepository;
+import com.nrs1209.travelapp.global.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @Override
     @Transactional(readOnly = true)
@@ -29,7 +31,15 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
 
-        return new UserResponseDTO(user.getId(), user.getUserName(), user.getEmail(), user.getNickName());
+        String token = jwtUtil.generateToken(user.getUserName());
+
+        return UserResponseDTO.builder()
+                .userid(user.getId())
+                .userName(user.getUserName())
+                .email(user.getEmail())
+                .nickName(user.getNickName())
+                .token(token)
+                .build();
     }
 
     @Override
@@ -54,8 +64,12 @@ public class UserServiceImpl implements UserService {
 
         User savedUser = userRepository.save(user);
 
-        return new UserResponseDTO(savedUser.getId(), savedUser.getUserName(), savedUser.getEmail(), savedUser.getNickName());
-
+        return UserResponseDTO.builder()
+                .userid(savedUser.getId())
+                .userName(savedUser.getUserName())
+                .email(savedUser.getEmail())
+                .nickName(savedUser.getNickName())
+                .build();
     }
 
     @Override
@@ -75,7 +89,12 @@ public class UserServiceImpl implements UserService {
             user.setNickName(userUpdateRequestDTO.getNickName());
         }
 
-        return new UserResponseDTO(user.getId(), user.getUserName(), user.getEmail(), user.getNickName());
+        return UserResponseDTO.builder()
+                .userid(user.getId())
+                .userName(user.getUserName())
+                .email(user.getEmail())
+                .nickName(user.getNickName())
+                .build();
     }
 
     @Override
@@ -85,6 +104,11 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없음"));
 
         // DTO로 변환해 리턴
-        return new UserResponseDTO(user.getId(), user.getUserName(), user.getEmail(), user.getNickName());
+        return UserResponseDTO.builder()
+                .userid(user.getId())
+                .userName(user.getUserName())
+                .email(user.getEmail())
+                .nickName(user.getNickName())
+                .build();
     }
 }
