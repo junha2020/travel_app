@@ -5,6 +5,8 @@ import com.nrs1209.travelapp.domain.place.dto.PlaceResponseDTO;
 import com.nrs1209.travelapp.domain.place.entity.Place;
 import com.nrs1209.travelapp.domain.place.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,10 +66,11 @@ public class PlaceServiceImpl implements PlaceService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PlaceResponseDTO> getAllPlaces() {
-        List<Place> places = placeRepository.findAll();
-        return places.stream()
-                .map(PlaceResponseDTO::fromEntity)
-                .collect(Collectors.toList());
+    public Page<PlaceResponseDTO> getAllPlaces(Pageable pageable) {
+        // 페이징 쿼리 및 카운트 쿼리 자동 실행
+        Page<Place> placePage = placeRepository.findAll(pageable);
+
+        // Page 내부의 Entity를 DTO로 매핑
+        return placePage.map(PlaceResponseDTO::fromEntity);
     }
 }
