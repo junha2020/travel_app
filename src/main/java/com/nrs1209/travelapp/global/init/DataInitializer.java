@@ -1,7 +1,7 @@
 package com.nrs1209.travelapp.global.init;
 
-import com.nrs1209.travelapp.domain.place.entity.Place;
-import com.nrs1209.travelapp.domain.place.repository.PlaceRepository;
+import com.nrs1209.travelapp.place.entity.Place;
+import com.nrs1209.travelapp.place.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -24,6 +24,8 @@ public class DataInitializer implements CommandLineRunner {
                     .category("관광지")
                     .description("도쿄의 상징적인 붉은 전파탑으로 멋진 도심 야경을 감상할 수 있는 곳")
                     .rating(4.6)
+                    .latitude(35.6586)
+                    .longitude(139.7456)
                     .imageUrl("https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=800&q=80")
                     .build();
 
@@ -33,6 +35,8 @@ public class DataInitializer implements CommandLineRunner {
                     .category("음식점")
                     .description("나만의 커스텀 레시피로 깊은 돈코츠 라멘을 맛볼 수 있는 유명 맛집")
                     .rating(4.4)
+                    .latitude(35.6917)
+                    .longitude(139.7020)
                     .imageUrl("https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=80")
                     .build();
 
@@ -42,6 +46,8 @@ public class DataInitializer implements CommandLineRunner {
                     .category("관광지")
                     .description("넓고 아름다운 정원과 온실이 있어 도심 속 여유를 만끽할 수 있는 국립 정원")
                     .rating(4.7)
+                    .latitude(35.6882)
+                    .longitude(139.7104)
                     .imageUrl("https://images.unsplash.com/photo-1542931287-023b922fa89b?auto=format&fit=crop&w=800&q=80")
                     .build();
 
@@ -51,6 +57,8 @@ public class DataInitializer implements CommandLineRunner {
                     .category("명소")
                     .description("도쿄 시부야의 활기차고 분주한 세계 최대 규모의 횡단보도")
                     .rating(4.5)
+                    .latitude(35.6592)
+                    .longitude(139.7008)
                     .imageUrl("https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?auto=format&fit=crop&w=800&q=80")
                     .build();
 

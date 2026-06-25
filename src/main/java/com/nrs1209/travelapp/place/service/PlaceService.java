@@ -1,0 +1,71 @@
+package com.nrs1209.travelapp.place.service;
+
+import com.nrs1209.travelapp.place.dto.PlaceRequestDTO;
+import com.nrs1209.travelapp.place.dto.PlaceResponseDTO;
+import com.nrs1209.travelapp.place.entity.Place;
+import com.nrs1209.travelapp.place.repository.PlaceRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class PlaceService {
+
+    private final PlaceRepository placeRepository;
+
+    @Transactional
+    public PlaceResponseDTO createPlace(PlaceRequestDTO requestDTO) {
+        Place place = Place.builder()
+                .name(requestDTO.getName())
+                .address(requestDTO.getAddress())
+                .latitude(requestDTO.getLatitude())
+                .longitude(requestDTO.getLongitude())
+                .imageUrl(requestDTO.getImageUrl())
+                .description(requestDTO.getDescription())
+                .category(requestDTO.getCategory())
+                .rating(requestDTO.getRating())
+                .build();
+
+        Place savedPlace = placeRepository.save(place);
+        return PlaceResponseDTO.fromEntity(savedPlace);
+    }
+
+    @Transactional(readOnly = true)
+    public PlaceResponseDTO getPlaceById(Long placeId) {
+        Place place = placeRepository.findById(placeId).orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다. ID: " + placeId));
+        return PlaceResponseDTO.fromEntity(place);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PlaceResponseDTO> searchPlacesByName(String name) {
+        List<Place> places = placeRepository.findByNameContainingIgnoreCase(name);
+        return places.stream()
+                .map(PlaceResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deletePlace(Long placeId) {
+        if (!placeRepository.existsById(placeId)) {
+            throw new IllegalArgumentException("삭제할 장소를 찾을 수 없습니다. ID: " + placeId);
+        }
+        // TODO: 이 장소 참조하는 PlanPlace가 있는지 확인 후 지우는 로직도 추가해야 함
+        placeRepository.deleteById(placeId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PlaceResponseDTO> getAllPlaces(Pageable pageable) {
+        // 페이징 쿼리 및 카운트 쿼리 자동 실행
+        Page<Place> placePage = placeRepository.findAll(pageable);
+
+        // Page 내부의 Entity를 DTO로 매핑
+        return placePage.map(PlaceResponseDTO::fromEntity);
+    }
+}
