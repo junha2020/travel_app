@@ -1,5 +1,6 @@
 package com.nrs1209.travelapp.place.controller;
 
+import com.nrs1209.travelapp.common.dto.PageResponseDTO;
 import com.nrs1209.travelapp.place.dto.PlaceRequestDTO;
 import com.nrs1209.travelapp.place.dto.PlaceResponseDTO;
 import com.nrs1209.travelapp.place.service.PlaceService;
@@ -30,10 +31,10 @@ public class PlaceController {
 
     // 모든 장소 목록 조회 API
     @GetMapping
-    public ResponseEntity<Page<PlaceResponseDTO>> getAllPlaces(
+    public ResponseEntity<PageResponseDTO<PlaceResponseDTO>> getAllPlaces(
             @PageableDefault(size = 5, sort = "id") Pageable pageable) {
-        Page<PlaceResponseDTO> responseDTOPage = placeService.getAllPlaces(pageable);
-        return ResponseEntity.ok(responseDTOPage);
+        PageResponseDTO<PlaceResponseDTO> response = new PageResponseDTO<>(placeService.getAllPlaces(pageable));
+        return ResponseEntity.ok(response);
     }
 
     // 특정 ID로 장소 조회 API
