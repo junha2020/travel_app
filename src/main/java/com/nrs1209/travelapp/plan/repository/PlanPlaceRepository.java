@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface PlanPlaceRepository extends JpaRepository<PlanPlace, Long> {
 
-    List<PlanPlace> findByTravelPlan_Id(Long planId);
+    List<PlanPlace> findByPlan_Id(Long planId);
 
-    List<PlanPlace> findByTravelPlan_IdAndDayOrderByDayAsc(Long planId, int day);
+    List<PlanPlace> findByPlan_IdAndDayOrderByDayAsc(Long planId, int day);
 }
