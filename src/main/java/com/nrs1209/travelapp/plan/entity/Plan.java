@@ -17,7 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "plan")
-public class TravelPlan {
+public class Plan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -45,11 +45,11 @@ public class TravelPlan {
     @Column(nullable = false)
     private LocalDateTime updatedAt; // 최종 수정 시간
 
-    @OneToMany(mappedBy = "travelPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PlanPlace> planPlace = new ArrayList<>();
 
     @Builder
-    public TravelPlan(String title, LocalDate startDate, LocalDate endDate, Long userId, boolean isPublic) {
+    public Plan(String title, LocalDate startDate, LocalDate endDate, Long userId, boolean isPublic) {
         this.title = title;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -66,11 +66,11 @@ public class TravelPlan {
 
     public void addPlanPlace(PlanPlace planPlace) {
         this.planPlace.add(planPlace);
-        planPlace.setTravelPlan(this);
+        planPlace.setPlan(this);
     }
 
     public void removePlanPlace(PlanPlace planPlace) {
         this.planPlace.remove(planPlace);
-        planPlace.setTravelPlan(null);
+        planPlace.setPlan(null);
     }
 }

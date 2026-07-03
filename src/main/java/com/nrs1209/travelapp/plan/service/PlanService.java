@@ -9,8 +9,8 @@ import com.nrs1209.travelapp.plan.dto.PlaceInPlanDTO;
 import com.nrs1209.travelapp.plan.dto.TravelPlanRequestDTO;
 import com.nrs1209.travelapp.plan.dto.TravelPlanResponseDTO;
 import com.nrs1209.travelapp.plan.dto.UpdatePlaceSequenceDTO;
-import com.nrs1209.travelapp.plan.entity.TravelPlan;
-import com.nrs1209.travelapp.plan.repository.TravelPlanRepository;
+import com.nrs1209.travelapp.plan.entity.Plan;
+import com.nrs1209.travelapp.plan.repository.PlanRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,15 +21,15 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class TravelPlanService {
+public class PlanService {
 
-    private final TravelPlanRepository travelPlanRepository;
+    private final PlanRepository planRepository;
     private final PlaceRepository placeRepository;
     private final PlanPlaceRepository planPlaceRepository;
 
     @Transactional
     public TravelPlanResponseDTO create(TravelPlanRequestDTO travelPlanRequestDTO) {
-        TravelPlan travelPlan = TravelPlan.builder()
+        Plan plan = Plan.builder()
                 .title(travelPlanRequestDTO.getTitle())
                 .startDate(travelPlanRequestDTO.getStartDate())
                 .endDate(travelPlanRequestDTO.getEndDate())
@@ -37,7 +37,7 @@ public class TravelPlanService {
                 .isPublic(travelPlanRequestDTO.isPublic())
                 .build();
 
-        TravelPlan savePlan = travelPlanRepository.save(travelPlan);
+        Plan savePlan = planRepository.save(plan);
 
         return TravelPlanResponseDTO.builder()
                 .id(savePlan.getId())
@@ -52,7 +52,7 @@ public class TravelPlanService {
 
     @Transactional
     public TravelPlanResponseDTO update(Long Id, TravelPlanRequestDTO travelPlanRequestDTO) {
-        TravelPlan plan = travelPlanRepository.findById(Id)
+        Plan plan = planRepository.findById(Id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
 
         plan.update(travelPlanRequestDTO.getTitle(), travelPlanRequestDTO.getStartDate(), travelPlanRequestDTO.getEndDate(), travelPlanRequestDTO.isPublic());
@@ -70,19 +70,19 @@ public class TravelPlanService {
 
     @Transactional
     public void delete(Long Id) {
-        if (!travelPlanRepository.existsById(Id)) {
+        if (!planRepository.existsById(Id)) {
             throw new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다.");
         }
 
-        travelPlanRepository.deleteById(Id);
+        planRepository.deleteById(Id);
     }
 
     @Transactional(readOnly = true)
     public TravelPlanResponseDTO findById(Long Id) {
-        TravelPlan travelPlan = travelPlanRepository.findById(Id)
+        Plan plan = planRepository.findById(Id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
 
-        List<PlaceInPlanDTO> placeDTOs = travelPlan.getPlanPlace().stream()
+        List<PlaceInPlanDTO> placeDTOs = plan.getPlanPlace().stream()
                 .map(planPlace -> PlaceInPlanDTO.builder()
                         .planPlaceId(planPlace.getId())
                         .placeId(planPlace.getPlace().getId())
@@ -97,19 +97,19 @@ public class TravelPlanService {
                 .collect(Collectors.toList());
 
         return TravelPlanResponseDTO.builder()
-                .id(travelPlan.getId())
-                .title(travelPlan.getTitle())
-                .startDate(travelPlan.getStartDate())
-                .endDate(travelPlan.getEndDate())
-                .userId(travelPlan.getUserId())
-                .isPublic(travelPlan.isPublic())
+                .id(plan.getId())
+                .title(plan.getTitle())
+                .startDate(plan.getStartDate())
+                .endDate(plan.getEndDate())
+                .userId(plan.getUserId())
+                .isPublic(plan.isPublic())
                 .places(placeDTOs)
                 .build();
     }
 
     @Transactional(readOnly = true)
     public List<TravelPlanResponseDTO> findByUserId(Long userId) {
-        List<TravelPlan> plans = travelPlanRepository.findByUserId(userId);
+        List<Plan> plans = planRepository.findByUserId(userId);
 
         return plans.stream()
                 .map(plan -> {
@@ -142,10 +142,10 @@ public class TravelPlanService {
     }
 
     public void addPlaceToPlan(Long planId, AddPlaceRequestDTO requestDTO) {
-        TravelPlan plan = travelPlanRepository.findById(planId).orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
+        Plan plan = planRepository.findById(planId).orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
         Place place = placeRepository.findById(requestDTO.getPlaceId()).orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
         PlanPlace planPlace = PlanPlace.builder()
-                .travelPlan(plan)
+                .plan(plan)
                 .place(place)
                 .day(requestDTO.getDay())
                 .build();
@@ -156,7 +156,7 @@ public class TravelPlanService {
     public void removePlaceFromPlan(Long planId, Long planPlaceId) {
         PlanPlace planPlace = planPlaceRepository.findById(planPlaceId).orElseThrow(() -> new IllegalArgumentException("해당 장소 연결 정보를 찾을 수 없습니다."));
 
-        if (!planPlace.getTravelPlan().getId().equals(planId)) {
+        if (!planPlace.getPlan().getId().equals(planId)) {
             throw new IllegalArgumentException("해당 여행 계획에 속한 장소가 아닙니다.");
         }
 
@@ -165,14 +165,14 @@ public class TravelPlanService {
 
     @Transactional
     public void updatePlacesSequence(Long planId, List<UpdatePlaceSequenceDTO> sequenceDTOs) {
-        TravelPlan plan = travelPlanRepository.findById(planId)
+        Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
 
         for (UpdatePlaceSequenceDTO dto : sequenceDTOs) {
             PlanPlace planPlace = planPlaceRepository.findById(dto.getPlanPlaceId())
                     .orElseThrow(() -> new IllegalArgumentException("해당 장소 연결 정보를 찾을 수 없습니다."));
 
-            if (!planPlace.getTravelPlan().getId().equals(planId)) {
+            if (!planPlace.getPlan().getId().equals(planId)) {
                 throw new IllegalArgumentException("해당 여행 계획에 속한 장소가 아닙니다.");
             }
 

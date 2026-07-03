@@ -4,7 +4,7 @@ import com.nrs1209.travelapp.plan.dto.AddPlaceRequestDTO;
 import com.nrs1209.travelapp.plan.dto.TravelPlanRequestDTO;
 import com.nrs1209.travelapp.plan.dto.TravelPlanResponseDTO;
 import com.nrs1209.travelapp.plan.dto.UpdatePlaceSequenceDTO;
-import com.nrs1209.travelapp.plan.service.TravelPlanService;
+import com.nrs1209.travelapp.plan.service.PlanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,56 +16,56 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/plans")
 @RequiredArgsConstructor
-public class TravelPlanController {
+public class PlanController {
 
-    private final TravelPlanService travelPlanService;
+    private final PlanService planService;
 
     // 여행 계획 생성
     @PostMapping
     public ResponseEntity<TravelPlanResponseDTO> createPlan(@Valid @RequestBody TravelPlanRequestDTO requestDTO) {
-        TravelPlanResponseDTO responseDTO = travelPlanService.create(requestDTO);
+        TravelPlanResponseDTO responseDTO = planService.create(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
     // 특정 ID로 여행 계획 조회
     @GetMapping("/{planId}")
     public ResponseEntity<TravelPlanResponseDTO> getPlanById(@PathVariable Long planId) {
-        TravelPlanResponseDTO responseDTO = travelPlanService.findById(planId);
+        TravelPlanResponseDTO responseDTO = planService.findById(planId);
         return ResponseEntity.ok(responseDTO);
     }
 
     // 특정 사용자의 모든 여행 계획 조회
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<TravelPlanResponseDTO>> getPlanByUserId(@PathVariable Long userId) {
-        List<TravelPlanResponseDTO> responseDTOList = travelPlanService.findByUserId(userId);
+        List<TravelPlanResponseDTO> responseDTOList = planService.findByUserId(userId);
         return ResponseEntity.ok(responseDTOList);
     }
 
     // 여행 계획 수정
     @PutMapping("/{planId}")
     public ResponseEntity<TravelPlanResponseDTO> updatePlan(@PathVariable Long planId, @Valid @RequestBody TravelPlanRequestDTO requestDTO) {
-        TravelPlanResponseDTO responseDTO = travelPlanService.update(planId, requestDTO);
+        TravelPlanResponseDTO responseDTO = planService.update(planId, requestDTO);
         return ResponseEntity.ok(responseDTO);
     }
 
     // 여행 계획 삭제
     @DeleteMapping("/{planId}")
     public ResponseEntity<TravelPlanResponseDTO> deletePlan(@PathVariable Long planId) {
-        travelPlanService.delete(planId);
+        planService.delete(planId);
         return ResponseEntity.noContent().build(); // 삭제 성공 시 204 No Content 응답
     }
 
     // 계획에 장소 추가
     @PostMapping("/{planId}/places")
     public ResponseEntity<Void> addPlace(@PathVariable Long planId, @Valid @RequestBody AddPlaceRequestDTO requestDTO) {
-        travelPlanService.addPlaceToPlan(planId, requestDTO);
+        planService.addPlaceToPlan(planId, requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     // 계획에서 장소 삭제
     @DeleteMapping("/{planId}/places/{planPlaceId}")
     public ResponseEntity<Void> removePlace(@PathVariable Long planId, @PathVariable Long planPlaceId) {
-        travelPlanService.removePlaceFromPlan(planId, planPlaceId);
+        planService.removePlaceFromPlan(planId, planPlaceId);
         return ResponseEntity.noContent().build();
     }
 
@@ -74,7 +74,7 @@ public class TravelPlanController {
     public ResponseEntity<Void> updatePlacesSequence(
             @PathVariable Long planId,
             @RequestBody List<UpdatePlaceSequenceDTO> sequenceDTOs) {
-        travelPlanService.updatePlacesSequence(planId, sequenceDTOs);
+        planService.updatePlacesSequence(planId, sequenceDTOs);
         return ResponseEntity.ok().build();
     }
 }

@@ -1,7 +1,6 @@
 package com.nrs1209.travelapp.plan.entity;
 
 import com.nrs1209.travelapp.place.entity.Place;
-import com.nrs1209.travelapp.plan.entity.TravelPlan;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,7 +20,7 @@ public class PlanPlace {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plan_id", nullable = false)
-    private TravelPlan travelPlan;
+    private Plan plan;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "place_id", nullable = false)
@@ -34,8 +33,8 @@ public class PlanPlace {
     private String memo; // 장소에 대한 간단한 메모
 
     @Builder
-    public PlanPlace(TravelPlan travelPlan, Place place, int day) {
-        this.travelPlan = travelPlan;
+    public PlanPlace(Plan plan, Place place, int day) {
+        this.plan = plan;
         this.place = place;
         this.day = day;
     }
