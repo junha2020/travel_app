@@ -77,4 +77,13 @@ public class PlanController {
         planService.updatePlacesSequence(planId, sequenceDTOs);
         return ResponseEntity.ok().build();
     }
+
+    // 배낭 찜 장소 일괄 벌크 추가 API
+    @PostMapping("/{planId}/places/bulk")
+    public ResponseEntity<Void> addPlacesBulk(
+            @PathVariable Long planId,
+            @Valid @RequestBody List<AddPlaceRequestDTO> requestDTOs) {
+        planService.addPlaceToPlanBulk(planId, requestDTOs);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
 }

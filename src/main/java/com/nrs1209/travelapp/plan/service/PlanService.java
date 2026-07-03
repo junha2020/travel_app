@@ -181,4 +181,22 @@ public class PlanService {
         }
     }
 
+    @Transactional
+    public void addPlacesToPlanBulk(Long planId, List<AddPlaceRequestDTO> requestDTOs) {
+        Plan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
+
+        List<PlanPlace> planPlaces = requestDTOs.stream().map(dto -> {
+            Place place = placeRepository.findById(dto.getPlaceId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다. ID: " + dto.getPlaceId()));
+
+            return PlanPlace.builder()
+                    .plan(plan)
+                    .place(place)
+                    .day(dto.getDay())
+                    .build();
+        }).collect(Collectors.toList());
+
+        planPlaceRepository.saveAll(planPlaces);
+    }
 }
