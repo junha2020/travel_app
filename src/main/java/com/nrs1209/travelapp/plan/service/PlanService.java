@@ -81,9 +81,12 @@ public class PlanService {
 
         planRepository.deleteById(Id);
 
+        // DELETE 쿼리 미리 flush로 반영.
+        entityManager.flush();
+
         // 모두 지우면 Auto-Increment 값 1로 초기화
         if (planRepository.count() == 0) {
-            entityManager.createNativeQuery("ALTER TABLE travel_plan AUTO_INCREMENT = 1").executeUpdate();
+            entityManager.createNativeQuery("ALTER TABLE plan AUTO_INCREMENT = 1").executeUpdate();
         }
     }
 
