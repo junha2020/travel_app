@@ -83,7 +83,7 @@ public class PlanController {
     public ResponseEntity<Void> addPlacesBulk(
             @PathVariable Long planId,
             @Valid @RequestBody List<AddPlaceRequestDTO> requestDTOs) {
-        planService.addPlaceToPlanBulk(planId, requestDTOs);
+        planService.addPlacesToPlanBulk(planId, requestDTOs);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

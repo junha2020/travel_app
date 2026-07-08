@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico").permitAll()
                         .requestMatchers("/api/users/**", "/api/plans/**", "/api/places/**").permitAll()
                         .anyRequest().authenticated()
                 )
