@@ -33,9 +33,10 @@ public class PlanPlace {
     private String memo; // 장소에 대한 간단한 메모
 
     @Builder
-    public PlanPlace(Plan plan, Place place, int day) {
+    public PlanPlace(Plan plan, Place place, int day, int sequence) {
         this.plan = plan;
         this.place = place;
         this.day = day;
+        this.sequence = sequence;
     }
 }

@@ -86,4 +86,13 @@ public class PlanController {
         planService.addPlacesToPlanBulk(planId, requestDTOs);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
+    // 추천 일정 복사 API
+    @PostMapping("/{recommendPlanId}/copy")
+    public ResponseEntity<Long> copyRecommendPlan(
+            @PathVariable Long recommendPlanId,
+            @RequestParam Long userId) {
+        Long newPlanId = planService.copyPlan(recommendPlanId, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newPlanId);
+    }
 }

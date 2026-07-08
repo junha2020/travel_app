@@ -214,4 +214,36 @@ public class PlanService {
 
         planPlaceRepository.saveAll(planPlaces);
     }
+
+    @Transactional
+    public Long copyPlan(Long recommendPlanId, Long targetUserId) {
+        // 복사할 원본 추천 일정 조회
+        Plan sourcePlan = planRepository.findById(recommendPlanId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 추천 일정을 찾을 수 없습니다."));
+
+        // 대상 유저 소유의 새 Plan 복제 생성
+        Plan targetPlan = Plan.builder()
+                .title("[AI 추천] " + sourcePlan.getTitle())
+                .startDate(sourcePlan.getStartDate())
+                .endDate(sourcePlan.getEndDate())
+                .userId(targetUserId)
+                .isPublic(false)
+                .build();
+
+        Plan savedPlan = planRepository.save(targetPlan);
+
+        // 원본 일정에 속해 있던 자식 장소들 깊은 복사 해 새 플랜에 매핑
+        List<PlanPlace> copiedPlaces = sourcePlan.getPlanPlace().stream().map(sourcePlace ->
+                PlanPlace.builder()
+                        .plan(savedPlan)
+                        .place(sourcePlace.getPlace())
+                        .day(sourcePlace.getDay())
+                        .sequence(sourcePlace.getSequence())
+                        .build()
+        ).collect(Collectors.toList());
+
+        planPlaceRepository.saveAll(copiedPlaces);
+
+        return savedPlan.getId();
+    }
 }
