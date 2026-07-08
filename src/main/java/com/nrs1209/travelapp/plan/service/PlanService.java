@@ -79,6 +79,8 @@ public class PlanService {
             throw new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다.");
         }
 
+        planPlaceRepository.deleteByPlan_Id(Id);
+
         planRepository.deleteById(Id);
 
         // DELETE 쿼리 미리 flush로 반영.
