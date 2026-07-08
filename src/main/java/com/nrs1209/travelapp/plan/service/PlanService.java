@@ -11,6 +11,8 @@ import com.nrs1209.travelapp.plan.dto.TravelPlanResponseDTO;
 import com.nrs1209.travelapp.plan.dto.UpdatePlaceSequenceDTO;
 import com.nrs1209.travelapp.plan.entity.Plan;
 import com.nrs1209.travelapp.plan.repository.PlanRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,9 @@ public class PlanService {
     private final PlanRepository planRepository;
     private final PlaceRepository placeRepository;
     private final PlanPlaceRepository planPlaceRepository;
+
+    @PersistenceContext
+    private final EntityManager entityManager; // 네이티브 쿼리 실행용 엔티티 매니저 주입
 
     @Transactional
     public TravelPlanResponseDTO create(TravelPlanRequestDTO travelPlanRequestDTO) {
@@ -75,6 +80,11 @@ public class PlanService {
         }
 
         planRepository.deleteById(Id);
+
+        // 모두 지우면 Auto-Increment 값 1로 초기화
+        if (planRepository.count() == 0) {
+            entityManager.createNativeQuery("ALTER TABLE travel_plan AUTO_INCREMENT = 1").executeUpdate();
+        }
     }
 
     @Transactional(readOnly = true)
