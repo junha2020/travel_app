@@ -4,6 +4,7 @@ import com.nrs1209.travelapp.plan.dto.AddPlaceRequestDTO;
 import com.nrs1209.travelapp.plan.dto.TravelPlanRequestDTO;
 import com.nrs1209.travelapp.plan.dto.TravelPlanResponseDTO;
 import com.nrs1209.travelapp.plan.dto.UpdatePlaceSequenceDTO;
+import com.nrs1209.travelapp.plan.service.GeminiService;
 import com.nrs1209.travelapp.plan.service.PlanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import java.util.List;
 public class PlanController {
 
     private final PlanService planService;
+    private final GeminiService geminiService;
 
     // 여행 계획 생성
     @PostMapping
@@ -93,6 +95,17 @@ public class PlanController {
             @PathVariable Long recommendPlanId,
             @RequestParam Long userId) {
         Long newPlanId = planService.copyPlan(recommendPlanId, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newPlanId);
+    }
+
+    // 실시간 AI 일정 생성 API 추가
+    @PostMapping("/ai-generate")
+    public ResponseEntity<Long> generateAIPlan(
+            @RequestParam String cityName,
+            @RequestParam int days,
+            @RequestParam String theme,
+            @RequestParam Long userId) {
+        Long newPlanId = geminiService.generateAIPlan(cityName, days, theme, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(newPlanId);
     }
 }
