@@ -80,4 +80,3 @@ INSERT INTO place (id, name, address, latitude, longitude, image_url, descriptio
 (58, '나카지마 공원', '일본 홋카이도 삿포로시 주오구 나카지마코엔 1', 43.0458, 141.3551, 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&w=600&q=80', '호이헤이칸(풍평관) 등 역사 유적이 녹음과 단풍, 연못 속에 아우러진 도심공원', '관광지', 4.4),
 (59, '로이즈 초콜릿 월드 신치토세', '일본 홋카이도 치토세시 비비 신치토세공항 터미널 3F', 42.7932, 141.6917, 'https://images.unsplash.com/photo-1518156677180-95a2893f3e9f?auto=format&fit=crop&w=600&q=80', '공항 내 기계가 직접 돌아가는 초콜릿 뮤지엄이자 로이즈 생초콜릿 명가', '관광지', 4.5),
 (60, '조잔케이 뷰 호텔 온천', '일본 홋카이도 삿포로시 미나미구 조잔케이온센히가시 2', 42.9669, 141.1714, 'https://images.unsplash.com/photo-1518156677180-95a2893f3e9f?auto=format&fit=crop&w=600&q=80', '단풍이 무성한 계곡 사이에 흐르는 온천수를 즐기는 삿포로 근교 온천', '관광지', 4.3);
-```

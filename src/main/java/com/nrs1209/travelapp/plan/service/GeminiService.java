@@ -37,7 +37,15 @@ public class GeminiService {
     @Transactional
     public Long generateAIPlan(String cityName, int days, String theme, Long userId) {
         // 엔드포인트
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" + apiKey;
+
+        List<Place> allPlaces = placeRepository.findAll();
+        List<Place> cityPlaces = allPlaces.stream()
+                .filter(p -> p.getAddress() != null && p.getAddress().contains(cityName))
+                .toList();
+
+        List<String> placeNames = cityPlaces.stream().map(Place::getName).toList();
+        String availablePlacesStr = String.join(", ", placeNames);
 
         String prompt = String.format(
                 "도시명 '%s'에 대해 %d일간의 추천 여행 동선 코스를 짜줘. " +
@@ -50,7 +58,7 @@ public class GeminiService {
             "  }\n" +
             "]\n" +
             "주의: 관광지명(placeName)은 반드시 해당 도시의 가장 유명하고 대표적인 명소 명칭(예: 도쿄 타워, 센소지, 오사카 성, 도톤보리 등)이어야 해.",
-            cityName, days, theme
+            cityName, days, theme, availablePlacesStr
         );
 
         // API 요청 바디 조립
@@ -97,9 +105,12 @@ public class GeminiService {
                 int sequence = ((Number) rawPlace.get("sequence")).intValue();
 
                 // DB에 해당 이름 장소 있는지 조회
-                Place place = placeRepository.findByNameContainingIgnoreCase(placeName)
-                        .stream().findFirst()
-                        .orElseGet(() -> placeRepository.findById(1L).orElse(null));
+                Place place = cityPlaces.stream()
+                        .filter(p -> p.getName().equalsIgnoreCase(placeName)
+                                || p.getName().contains(placeName)
+                                ||placeName.contains(p.getName()))
+                        .findFirst()
+                        .orElse(null);
 
                 if (place != null) {
                     planPlaces.add(PlanPlace.builder()
