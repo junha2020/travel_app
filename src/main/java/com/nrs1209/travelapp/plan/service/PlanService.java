@@ -1,3 +1,4 @@
+// TODO [2단계]: findById() 및 findByUserId()의 PlaceInPlanDTO 빌더 매핑에 .category(planPlace.getPlace().getCategory()) 및 .imageUrl(planPlace.getPlace().getImageUrl()) 주입하기
 package com.nrs1209.travelapp.plan.service;
 
 import com.nrs1209.travelapp.place.entity.Place;
@@ -108,6 +109,8 @@ public class PlanService {
                         .day(planPlace.getDay())
                         .sequence(planPlace.getSequence())
                         .memo(planPlace.getMemo())
+                        .category(planPlace.getPlace().getCategory())
+                        .imageUrl(planPlace.getPlace().getImageUrl())
                         .build())
                 .collect(Collectors.toList());
 
@@ -139,6 +142,8 @@ public class PlanService {
                                     .day(planPlace.getDay())
                                     .sequence(planPlace.getSequence())
                                     .memo(planPlace.getMemo())
+                                    .category(planPlace.getPlace().getCategory())
+                                    .imageUrl(planPlace.getPlace().getImageUrl())
                                     .build())
                             .collect(Collectors.toList());
 
