@@ -1,9 +1,9 @@
 package com.nrs1209.travelapp.external.controller;
 
-import com.nrs1209.travelapp.external.dto.ExchangeRateResponseDTO;
-import com.nrs1209.travelapp.external.dto.WeatherResponseDTO;
-import com.nrs1209.travelapp.external.service.ExchangeRateService;
-import com.nrs1209.travelapp.external.service.WeatherService;
+import com.nrs1209.travelapp.external.currency.dto.ExchangeRateResponseDTO;
+import com.nrs1209.travelapp.external.weather.dto.WeatherResponseDTO;
+import com.nrs1209.travelapp.external.currency.service.ExchangeRateService;
+import com.nrs1209.travelapp.external.weather.service.WeatherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

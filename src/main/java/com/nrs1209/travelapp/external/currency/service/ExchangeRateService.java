@@ -1,6 +1,6 @@
-package com.nrs1209.travelapp.external.service;
+package com.nrs1209.travelapp.external.currency.service;
 
-import com.nrs1209.travelapp.external.dto.ExchangeRateResponseDTO;
+import com.nrs1209.travelapp.external.currency.dto.ExchangeRateResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

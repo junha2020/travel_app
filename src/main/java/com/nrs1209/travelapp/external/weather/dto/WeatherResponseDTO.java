@@ -1,4 +1,4 @@
-package com.nrs1209.travelapp.external.dto;
+package com.nrs1209.travelapp.external.weather.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

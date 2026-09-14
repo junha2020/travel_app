@@ -1,6 +1,7 @@
 package com.nrs1209.travelapp.place.controller;
 
 import com.nrs1209.travelapp.common.dto.PageResponseDTO;
+import com.nrs1209.travelapp.external.google.service.GooglePlacesService;
 import com.nrs1209.travelapp.place.dto.PlaceRequestDTO;
 import com.nrs1209.travelapp.place.dto.PlaceResponseDTO;
 import com.nrs1209.travelapp.place.service.PlaceService;
@@ -21,6 +22,7 @@ import java.util.List;
 public class PlaceController {
 
     private final PlaceService placeService;
+    private final GooglePlacesService googlePlacesService;
 
     // 장소 생성 API
     @PostMapping
@@ -56,5 +58,12 @@ public class PlaceController {
     public ResponseEntity<Void> deletePlace(@PathVariable Long placeId) {
         placeService.deletePlace(placeId);
         return ResponseEntity.noContent().build();
+    }
+
+    // 구글 실시간 장소 검색 & DB 자동 캐싱
+    @GetMapping("/search/google")
+    public ResponseEntity<List<PlaceResponseDTO>> searchGooglePlaces(@RequestParam String query) {
+        List<PlaceResponseDTO> responseDTOList = googlePlacesService.searchPlacesWithAutoCache(query);
+        return ResponseEntity.ok(responseDTOList);
     }
 }

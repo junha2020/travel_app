@@ -17,7 +17,7 @@ public class Place {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 50, nullable = false)
+    @Column(length = 200, nullable = false)
     private String name;
 
     @Column(length = 255)
@@ -29,7 +29,7 @@ public class Place {
     @Column(nullable = true)
     private Double longitude;
 
-    @Column(length = 500)
+    @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(columnDefinition = "TEXT")

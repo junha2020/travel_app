@@ -1,6 +1,6 @@
-package com.nrs1209.travelapp.external.service;
+package com.nrs1209.travelapp.external.weather.service;
 
-import com.nrs1209.travelapp.external.dto.WeatherResponseDTO;
+import com.nrs1209.travelapp.external.weather.dto.WeatherResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ public class WeatherService {
         double[] coords = getCityCoordinates(targetCity);
 
         String url = String.format(
-                "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=Asia%%2FTokyo",
+                "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto",
                 coords[0], coords[1]
         );
 
