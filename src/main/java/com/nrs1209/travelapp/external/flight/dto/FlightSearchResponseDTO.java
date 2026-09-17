@@ -31,10 +31,27 @@ public class FlightSearchResponseDTO {
     @AllArgsConstructor
     public static class FlightDealItem {
 
+        private String id;
         private String airline;
+        private String flightNumber;
+        private String outboundFlightNo; // 가는편 편명
+        private String inboundFlightNo; // 오는편 편명
         private int price;
-        private String departureTime;
-        private String arrivalTime;
-        private boolean isDirect;
+        private String tag; // 뱃지 태그
+        private int remainingSeats; // 남은 좌석 수
+        private String baggageInfo;
+        private String cabinClass;
+
+        // 가는편
+        private String outboundDeptTime;
+        private String outboundArrTime;
+        private String outboundDuration;
+        private boolean outboundDirect;
+
+        // 오는편
+        private String inboundDeptTime;
+        private String inboundArrTime;
+        private String inboundDuration;
+        private boolean inboundDirect;
     }
 }

@@ -39,8 +39,8 @@ public class SkyscannerFlightService {
         //　RapidAPI 키가 있으면 실시간 호출 시도
         if (rapidApiKey != null && !rapidApiKey.isBlank()) {
             try {
-                String formattedDepart = (departDate != null && !departDate.isBlank()) ? departDate.replace(".", "-") : "2026-09-20";
-                String formattedReturn = (returnDate != null && !returnDate.isBlank()) ? returnDate.replace(".", "-") : "2026-09-24";
+                String formattedDepart = (departDate != null && !departDate.isBlank()) ? departDate.replace(".", "-") : "2026-10-26";
+                String formattedReturn = (returnDate != null && !returnDate.isBlank()) ? returnDate.replace(".", "-") : "2026-10-29";
 
                 String url = String.format(
                         "https://%s/search?adults=1&origin=%s&destination=%s&departureDate=%s&returnDate=%s&currency=KRW",
@@ -59,7 +59,7 @@ public class SkyscannerFlightService {
                     // 실시간 응답 파싱 필요한 경우 여기서 세부 매핑
                 }
             } catch (Exception e) {
-                log.warn("RapidAPI 항공원 호출 실패: {}", e.getMessage());
+                log.warn("RapidAPI 호출 실패: {}", e.getMessage());
             }
         }
 
@@ -70,11 +70,11 @@ public class SkyscannerFlightService {
      * API JSON 응답 안전하게 파싱
      */
     private FlightSearchResponseDTO parseApiResponse(
-            Map<?, ?> body, String originCode, String originName, String destCode, String destName, String depart, String ret) {
+            Map<?, ?> body, String originCode, String originName, String destCode, String destName, String departDate, String returnDate) {
         try {
             // 최저가 추출 로직
-            if (body.containsKey("data")) {
-                return createFallbackFlightDeal(originCode, originName, destCode, destName, depart, ret);
+            if (body == null || body.containsKey("data")) {
+                return createFallbackFlightDeal(originCode, originName, destCode, destName, departDate, returnDate);
             }
         } catch (Exception e) {
             log.warn("API 파싱 중 에러: {}", e.getMessage());
