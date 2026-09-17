@@ -2,8 +2,8 @@ package com.nrs1209.travelapp.external.flight.service;
 
 import com.nrs1209.travelapp.external.flight.dto.FlightSearchResponseDTO;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -32,7 +32,7 @@ public class SkyscannerFlightService {
      */
     public FlightSearchResponseDTO searchFlights(String origin, String destination, String departDate, String returnDate) {
         String originCode = normaizeAirportCode(origin, "ICN");
-        String destCode = mapCityToAirportCode(destination);
+        String destCode = mapCityToAirportCode(destination, originCode);
         String originName = mapAirportToCityName(originCode);
         String destName = mapAirportToCityName(destCode);
 
