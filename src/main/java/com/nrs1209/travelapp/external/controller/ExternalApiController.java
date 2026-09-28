@@ -40,8 +40,12 @@ public class ExternalApiController {
             @RequestParam(defaultValue = "ICN") String origin,
             @RequestParam(defaultValue = "TYO") String destination,
             @RequestParam(required = false, defaultValue = "2026-10-26") String departDate,
-            @RequestParam(required = false, defaultValue = "2026-10-29") String returnDate) {
-        FlightSearchResponseDTO response = skyscannerFlightService.searchFlights(origin, destination, departDate, returnDate);
+            @RequestParam(required = false, defaultValue = "2026-10-29") String returnDate,
+            @RequestParam(required = false, defaultValue = "1") Integer adults,
+            @RequestParam(required = false, defaultValue = "0") Integer children,
+            @RequestParam(required = false, defaultValue = "0") Integer infants,
+            @RequestParam(required = false, defaultValue = "economy") String cabin) {
+        FlightSearchResponseDTO response = skyscannerFlightService.searchFlights(origin, destination, departDate, returnDate, adults, children, infants, cabin);
         return ResponseEntity.ok(response);
     }
 }

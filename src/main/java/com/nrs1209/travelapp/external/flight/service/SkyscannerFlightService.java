@@ -5,18 +5,19 @@ import com.nrs1209.travelapp.external.flight.dto.FlightSearchResponseDTO.FlightD
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-
 
 @Slf4j
 @Service
@@ -31,33 +32,55 @@ public class SkyscannerFlightService {
     private static final String RAPID_API_HOST = "skyscanner-flights4.p.rapidapi.com";
 
     /**
-     * 실시간 왕복 항공권 최저가 검색, 제대로 된 API POST 엔드포인트 호출 및 실시간 응답 파싱
+     * 4개 인자 호출 하위 호환성 오버로딩
      */
     public FlightSearchResponseDTO searchFlights(String origin, String destination, String departDate, String returnDate) {
+        return searchFlights(origin, destination, departDate, returnDate, 1, 0, 0, "economy");
+    }
+
+    /**
+     * 6개 인자 호출 하위 호환성 오버로딩
+     */
+    public FlightSearchResponseDTO searchFlights(String origin, String destination, String departDate, String returnDate, Integer adults, String cabin) {
+        return searchFlights(origin, destination, departDate, returnDate, adults, 0, 0, "economy");
+    }
+
+    /**
+     * 실시간 왕복 항공권 최저가 검색, 제대로 된 API POST 엔드포인트 호출 및 실시간 응답 파싱.
+     */
+    public FlightSearchResponseDTO searchFlights(String origin, String destination, String departDate, String returnDate, Integer adults, Integer children, Integer infants, String cabin) {
         String originCode = normalizeAirportCode(origin, "ICN");
         String destCode = mapCityToAirportCode(destination, originCode);
         String originName = mapAirportToCityName(originCode);
         String destName = mapAirportToCityName(destCode);
 
-        //　RapidAPI 키가 있으면 실시간 호출 시도
+        // API 호출 시도
         if (rapidApiKey != null && !rapidApiKey.isBlank()) {
             try {
-                String dDate = normalizeToIsoDate(departDate, "2026-10-30");
+                String dDate = normalizeToIsoDate(departDate, "2026-10-26");
                 String rDate = normalizeToIsoDate(returnDate, "2026-11-06");
 
+                // 엔드포인트
                 String url = String.format("https://%s/api/v1/roundtrip", RAPID_API_HOST);
 
-                Map<String, Object> requestBody = Map.of(
-                        "adults", 1,
-                        "cabin", "economy",
-                        "currency", "KRW",
-                        "date", dDate,
-                        "destination", destCode,
-                        "locale", "ko-KR",
-                        "market", "KR",
-                        "origin", originCode,
-                        "return_date", rDate
-                );
+                // 인원수 및 좌석 등급 동적 주입
+                int adultCount = (adults != null && adults > 0) ? adults : 1;
+                int childCount = (children != null && children >= 0) ? children : 0;
+                int infantCount = (infants != null && infants >= 0) ? infants : 0;
+                String cabinEnum = mapCabinClass(cabin);
+
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("adults", adultCount);
+                requestBody.put("children", childCount);
+                requestBody.put("infants", infantCount);
+                requestBody.put("cabin", cabinEnum);
+                requestBody.put("currency", "KRW");
+                requestBody.put("date", dDate);
+                requestBody.put("destination", destCode);
+                requestBody.put("locale", "ko-KR");
+                requestBody.put("market", "KR");
+                requestBody.put("origin", originCode);
+                requestBody.put("return_date", rDate);
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
@@ -66,13 +89,21 @@ public class SkyscannerFlightService {
 
                 HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-                var response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
+                var response = restTemplate.exchange(
+                        url,
+                        HttpMethod.POST,
+                        entity,
+                        new ParameterizedTypeReference<Map<String, Object>>() {}
+                );
 
                 if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                     List<Map<String, Object>> results = (List<Map<String, Object>>) response.getBody().get("results");
-                    if (results != null && !results.isEmpty()) {
-                        log.info("스카이스캐너 실시간 항공권 조회 성공! [{}건 수신, {} ➔ {}]", results.size(), originCode, destCode);
-                        List<FlightSearchResponseDTO.FlightDealItem> realDeals = parseRapidApiResults(results);
+
+                    if (!CollectionUtils.isEmpty(results)) {
+                        log.info("스카이스캐너 실시간 항공권 조회 성공! [{}건 수신, {} ➔ {} (성인: {}명, 소아 {}명, 유아 {}명, 좌석: {})]",
+                                results.size(), originCode, destCode, adultCount, childCount, infantCount, cabinEnum);
+
+                        List<FlightDealItem> realDeals = parseRapidApiResults(results);
                         if (!realDeals.isEmpty()) {
                             return FlightSearchResponseDTO.builder()
                                     .originAirport(originCode)
@@ -91,11 +122,25 @@ public class SkyscannerFlightService {
                     }
                 }
             } catch (Exception e) {
-                log.warn("RapidAPI 호출 실패: {}", e.getMessage());
+                log.warn("API 호출 실패 (스마트 Fallback 모드로 안전 전환): {}", e.getMessage());
             }
         }
 
         return createFallbackFlightDeal(originCode, originName, destCode, destName, departDate, returnDate);
+    }
+
+    /**
+     * 좌석 등급 한글/영문 자동 매핑
+     */
+    private String mapCabinClass(String cabin) {
+        if (cabin == null || cabin.isBlank()) return "economy";
+        String lower = cabin.trim().toLowerCase();
+        return switch (lower) {
+            case "비즈니스", "비즈니스석", "비지니스", "비지니스석", "business" -> "business";
+            case "프리미엄 일반석", "프리미엄일반석", "premium-economy", "premium_economy" -> "premium-economy";
+            case "일등석", "퍼스트", "first" -> "first";
+            default -> "economy";
+        };
     }
 
     /**
