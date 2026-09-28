@@ -45,7 +45,7 @@ public class SkyscannerFlightService {
                 String dDate = normalizeToIsoDate(departDate, "2026-10-30");
                 String rDate = normalizeToIsoDate(returnDate, "2026-11-06");
 
-                String url = String.format("https://%s/api/vi/roundtrip", RAPID_API_HOST);
+                String url = String.format("https://%s/api/v1/roundtrip", RAPID_API_HOST);
 
                 Map<String, Object> requestBody = Map.of(
                         "adults", 1,
@@ -66,11 +66,11 @@ public class SkyscannerFlightService {
 
                 HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-                var response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
+                var response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
 
                 if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                     List<Map<String, Object>> results = (List<Map<String, Object>>) response.getBody().get("results");
-                    if (results != null & !results.isEmpty()) {
+                    if (results != null && !results.isEmpty()) {
                         log.info("스카이스캐너 실시간 항공권 조회 성공! [{}건 수신, {} ➔ {}]", results.size(), originCode, destCode);
                         List<FlightSearchResponseDTO.FlightDealItem> realDeals = parseRapidApiResults(results);
                         if (!realDeals.isEmpty()) {
@@ -108,11 +108,100 @@ public class SkyscannerFlightService {
             try {
                 String id = (String) r.getOrDefault("id", "deal-" + rank);
                 Number priceNum = (Number) r.get("price_raw");
-                
+                int price = priceNum != null ? priceNum.intValue() : 0;
+
+                List<String> carriers = (List<String>) r.get("carriers");
+                String airline = (carriers != null && !carriers.isEmpty()) ? carriers.get(0) : "항공사";
+
+                List<Map<String, Object>> legs = (List<Map<String, Object>>) r.get("legs");
+                Map<String, Object> outLeg = (legs != null && !legs.isEmpty()) ? legs.get(0) : null;
+                Map<String, Object> inLeg = (legs != null && legs.size() > 1) ? legs.get(1) : null;
+
+                String tag = rank == 1 ? "# 최저가 추천" : (rank == 2 ? "# 인기 특가" : "# 실시간 특가");
+
+                list.add(FlightDealItem.builder()
+                        .id(id)
+                        .airline(airline)
+                        .flightNumber(extractFlightNo(outLeg))
+                        .outboundFlightNo(extractFlightNo(outLeg))
+                        .inboundFlightNo(extractFlightNo(inLeg))
+                        .price(price)
+                        .tag(tag)
+                        .remainingSeats(9)
+                        .baggageInfo("수하물: 항공사 운임 규정 확인")
+                        .cabinClass("일반석")
+                        .outboundDeptTime(extractTime(outLeg, "dep", "11:10"))
+                        .outboundArrTime(extractTime(outLeg, "arr", "13:20"))
+                        .outboundDuration(formatDuration(outLeg, "2시간 10분"))
+                        .outboundDirect(isDirect(outLeg))
+                        .inboundDeptTime(extractTime(inLeg, "dep", "11:10"))
+                        .inboundArrTime(extractTime(inLeg, "arr", "13:20"))
+                        .inboundDuration(formatDuration(inLeg, "2시간 10분"))
+                        .inboundDirect(isDirect(inLeg))
+                        .build());
+                rank++;
             } catch (Exception e) {
-              
+                log.debug("개별 항공권 파싱 스킵: {}", e.getMessage());
             }
         }
+        return list;
+    }
+
+    private String extractTime(Map<String, Object> leg, String key, String defaultVal) {
+        if (leg == null) return defaultVal;
+        String val = (String) leg.get(key);
+        if (val != null && val.contains("T")) {
+            String timePart = val.substring(val.indexOf("T") - 1);
+            if (timePart.length() >= 5) {
+                return timePart.substring(0, 5);
+            }
+        }
+        return defaultVal;
+    }
+
+    private String formatDuration(Map<String, Object> leg, String defaultVal) {
+        if (leg == null) return defaultVal;
+        Number dur = (Number) leg.get("dur_min");
+        if (dur != null) {
+            int minutes = dur.intValue();
+            int h = minutes / 60;
+            int m = minutes % 60;
+            return (h > 0 ? h + "시간 " : "") + (m > 0 ? m + "분 " : "");
+        }
+        return defaultVal;
+    }
+
+    private String extractFlightNo(Map<String, Object> leg) {
+        if (leg == null) return "FLIGHT";
+        List<Map<String, Object>> segments = (List<Map<String, Object>>) leg.get("segments");
+        if (segments != null && !segments.isEmpty()) {
+            String flight = (String) segments.get(0).get("flight");
+            if (flight != null && !flight.isBlank()) {
+                return flight;
+            }
+        }
+        return "FLIGHT";
+    }
+
+    private boolean isDirect(Map<String, Object> leg) {
+        if (leg == null) return true;
+        Number stops = (Number) leg.get("stops");
+        return stops != null && stops.intValue() == 0;
+    }
+
+    /**
+     * 한글을 ISO 포맷으로 변경
+     */
+    private String normalizeToIsoDate(String dateStr, String fallbackIso) {
+        if (dateStr == null || dateStr.isBlank()) return fallbackIso;
+        if (dateStr.matches("^\\d{4}-\\d{2}-\\d{2}$")) return dateStr;
+        var matcher = java.util.regex.Pattern.compile("(\\\\d{1,2})\\\\.(\\\\d{1,2})").matcher(dateStr);
+        if (matcher.find()) {
+            String m = String.format("%02d", Integer.parseInt(matcher.group(1)));
+            String d = String.format("%02d", Integer.parseInt(matcher.group(2)));
+            return "2026-" + m + "-" + d;
+        }
+        return fallbackIso;
     }
 
     /**
