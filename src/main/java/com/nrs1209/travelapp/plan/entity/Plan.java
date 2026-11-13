@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,9 +42,9 @@ public class Plan {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt; // 생성 시간
 
-    @CreationTimestamp
+    @UpdateTimestamp 
     @Column(nullable = false)
-    private LocalDateTime updatedAt; // 최종 수정 시간
+    private LocalDateTime updatedAt; // 최종 수정 시간  
 
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PlanPlace> planPlace = new ArrayList<>();

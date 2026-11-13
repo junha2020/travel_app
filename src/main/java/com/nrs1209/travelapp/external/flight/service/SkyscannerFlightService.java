@@ -196,7 +196,7 @@ public class SkyscannerFlightService {
         if (leg == null) return defaultVal;
         String val = (String) leg.get(key);
         if (val != null && val.contains("T")) {
-            String timePart = val.substring(val.indexOf("T") - 1);
+            String timePart = val.substring(val.indexOf("T") + 1);
             if (timePart.length() >= 5) {
                 return timePart.substring(0, 5);
             }

@@ -5,12 +5,14 @@ import com.nrs1209.travelapp.user.entity.User;
 import com.nrs1209.travelapp.user.repository.UserRepository;
 import com.nrs1209.travelapp.global.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -127,6 +129,8 @@ public class UserService {
         String encodedPassword = passwordEncoder.encode(tempPassword);
         user.setPassword(encodedPassword); // 더티 체킹에 의해 자동 반영
 
-        return new ResetPasswordResponseDTO("임시 비밀번호가 발급되었습니다.", tempPassword);
+        log.info("[DEV-DEBUG] 이메일({}) 임시 비밀번호 발급: {}", requestDTO.getEmail(), tempPassword);
+
+        return new ResetPasswordResponseDTO("임시 비밀번호가 등록된 이메일로 발송되었습니다.");
     }
 }

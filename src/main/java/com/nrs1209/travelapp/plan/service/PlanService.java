@@ -12,6 +12,8 @@ import com.nrs1209.travelapp.plan.dto.TravelPlanResponseDTO;
 import com.nrs1209.travelapp.plan.dto.UpdatePlaceSequenceDTO;
 import com.nrs1209.travelapp.plan.entity.Plan;
 import com.nrs1209.travelapp.plan.repository.PlanRepository;
+import com.nrs1209.travelapp.user.entity.User;
+import com.nrs1209.travelapp.user.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,14 +34,18 @@ public class PlanService {
 
     @PersistenceContext
     private final EntityManager entityManager; // 네이티브 쿼리 실행용 엔티티 매니저 주입
+    private final UserRepository userRepository;
 
     @Transactional
-    public TravelPlanResponseDTO create(TravelPlanRequestDTO travelPlanRequestDTO) {
+    public TravelPlanResponseDTO create(TravelPlanRequestDTO travelPlanRequestDTO, String username) {
+        User currentUser = userRepository.findByUserName(username)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
         Plan plan = Plan.builder()
                 .title(travelPlanRequestDTO.getTitle())
                 .startDate(travelPlanRequestDTO.getStartDate())
                 .endDate(travelPlanRequestDTO.getEndDate())
-                .userId(travelPlanRequestDTO.getUserId())
+                .userId(currentUser.getId())
                 .isPublic(travelPlanRequestDTO.isPublic())
                 .build();
 
@@ -57,9 +63,8 @@ public class PlanService {
     }
 
     @Transactional
-    public TravelPlanResponseDTO update(Long Id, TravelPlanRequestDTO travelPlanRequestDTO) {
-        Plan plan = planRepository.findById(Id)
-                .orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
+    public TravelPlanResponseDTO update(Long Id, TravelPlanRequestDTO travelPlanRequestDTO, String username) {
+        Plan plan = validatePlanOwnership(Id, username);
 
         plan.update(travelPlanRequestDTO.getTitle(), travelPlanRequestDTO.getStartDate(), travelPlanRequestDTO.getEndDate(), travelPlanRequestDTO.isPublic());
 
@@ -75,13 +80,12 @@ public class PlanService {
     }
 
     @Transactional
-    public void delete(Long Id) {
-        if (!planRepository.existsById(Id)) {
-            throw new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다.");
-        }
+    public void delete(Long Id, String username) {
+        // 계획 조회
+        Plan plan = validatePlanOwnership(Id, username);
 
+        // 내 계획이 맞으니 안전하게 삭제
         planPlaceRepository.deleteByPlan_Id(Id);
-
         planRepository.deleteById(Id);
 
         // DELETE 쿼리 미리 flush로 반영.
@@ -94,9 +98,17 @@ public class PlanService {
     }
 
     @Transactional(readOnly = true)
-    public TravelPlanResponseDTO findById(Long Id) {
+    public TravelPlanResponseDTO findById(Long Id, String username) {
         Plan plan = planRepository.findById(Id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
+
+        if (!plan.isPublic()) {
+            User currentUser = userRepository.findByUserName(username)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+            if (!plan.getUserId().equals(currentUser.getId())) {
+                throw new org.springframework.security.access.AccessDeniedException("비공개 여행 계획에 대한 접근 권한이 없습니다.");
+            }
+        }
 
         List<PlaceInPlanDTO> placeDTOs = plan.getPlanPlace().stream()
                 .map(planPlace -> PlaceInPlanDTO.builder()
@@ -126,7 +138,14 @@ public class PlanService {
     }
 
     @Transactional(readOnly = true)
-    public List<TravelPlanResponseDTO> findByUserId(Long userId) {
+    public List<TravelPlanResponseDTO> findByUserId(Long userId, String username) {
+        User currentUser = userRepository.findByUserName(username)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
+        if (!currentUser.getId().equals(userId)) {
+            throw new org.springframework.security.access.AccessDeniedException("다른 사용자의 여행 계획 목록은 조회할 수 없습니다.");
+        }
+
         List<Plan> plans = planRepository.findByUserId(userId);
 
         return plans.stream()
@@ -161,8 +180,8 @@ public class PlanService {
                 .collect(Collectors.toList());
     }
 
-    public void addPlaceToPlan(Long planId, AddPlaceRequestDTO requestDTO) {
-        Plan plan = planRepository.findById(planId).orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
+    public void addPlaceToPlan(Long planId, AddPlaceRequestDTO requestDTO, String username) {
+        Plan plan = validatePlanOwnership(planId, username);
         Place place = placeRepository.findById(requestDTO.getPlaceId()).orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
         PlanPlace planPlace = PlanPlace.builder()
                 .plan(plan)
@@ -173,7 +192,8 @@ public class PlanService {
         planPlaceRepository.save(planPlace);
     }
 
-    public void removePlaceFromPlan(Long planId, Long planPlaceId) {
+    public void removePlaceFromPlan(Long planId, Long planPlaceId, String username) {
+        validatePlanOwnership(planId, username);
         PlanPlace planPlace = planPlaceRepository.findById(planPlaceId).orElseThrow(() -> new IllegalArgumentException("해당 장소 연결 정보를 찾을 수 없습니다."));
 
         if (!planPlace.getPlan().getId().equals(planId)) {
@@ -184,9 +204,8 @@ public class PlanService {
     }
 
     @Transactional
-    public void updatePlacesSequence(Long planId, List<UpdatePlaceSequenceDTO> sequenceDTOs) {
-        Plan plan = planRepository.findById(planId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
+    public void updatePlacesSequence(Long planId, List<UpdatePlaceSequenceDTO> sequenceDTOs, String username) {
+        Plan plan = validatePlanOwnership(planId, username);
 
         for (UpdatePlaceSequenceDTO dto : sequenceDTOs) {
             PlanPlace planPlace = planPlaceRepository.findById(dto.getPlanPlaceId())
@@ -202,9 +221,8 @@ public class PlanService {
     }
 
     @Transactional
-    public void addPlacesToPlanBulk(Long planId, List<AddPlaceRequestDTO> requestDTOs) {
-        Plan plan = planRepository.findById(planId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
+    public void addPlacesToPlanBulk(Long planId, List<AddPlaceRequestDTO> requestDTOs, String username) {
+        Plan plan = validatePlanOwnership(planId, username);
 
         List<PlanPlace> planPlaces = requestDTOs.stream().map(dto -> {
             Place place = placeRepository.findById(dto.getPlaceId())
@@ -221,7 +239,10 @@ public class PlanService {
     }
 
     @Transactional
-    public Long copyPlan(Long recommendPlanId, Long targetUserId) {
+    public Long copyPlan(Long recommendPlanId, String username) {
+        User currentUser = userRepository.findByUserName(username)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
         // 복사할 원본 추천 일정 조회
         Plan sourcePlan = planRepository.findById(recommendPlanId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 추천 일정을 찾을 수 없습니다."));
@@ -231,7 +252,7 @@ public class PlanService {
                 .title("[AI 추천] " + sourcePlan.getTitle())
                 .startDate(sourcePlan.getStartDate())
                 .endDate(sourcePlan.getEndDate())
-                .userId(targetUserId)
+                .userId(currentUser.getId())
                 .isPublic(false)
                 .build();
 
@@ -250,5 +271,19 @@ public class PlanService {
         planPlaceRepository.saveAll(copiedPlaces);
 
         return savedPlan.getId();
+    }
+
+    private Plan validatePlanOwnership(Long planId, String username) {
+        Plan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 여행 계획을 찾을 수 없습니다."));
+
+        User currentUser = userRepository.findByUserName(username)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
+        if (!plan.getUserId().equals(currentUser.getId())) {
+            throw new org.springframework.security.access.AccessDeniedException("해당 여행 계획에 대한 권한이 없습니다.");
+        }
+
+        return plan;
     }
 }

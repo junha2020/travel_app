@@ -10,6 +10,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,50 +26,50 @@ public class PlanController {
 
     // 여행 계획 생성
     @PostMapping
-    public ResponseEntity<TravelPlanResponseDTO> createPlan(@Valid @RequestBody TravelPlanRequestDTO requestDTO) {
-        TravelPlanResponseDTO responseDTO = planService.create(requestDTO);
+    public ResponseEntity<TravelPlanResponseDTO> createPlan(@Valid @RequestBody TravelPlanRequestDTO requestDTO, @AuthenticationPrincipal UserDetails userDetails) {
+        TravelPlanResponseDTO responseDTO = planService.create(requestDTO, userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
     // 특정 ID로 여행 계획 조회
     @GetMapping("/{planId}")
-    public ResponseEntity<TravelPlanResponseDTO> getPlanById(@PathVariable Long planId) {
-        TravelPlanResponseDTO responseDTO = planService.findById(planId);
+    public ResponseEntity<TravelPlanResponseDTO> getPlanById(@PathVariable Long planId, @AuthenticationPrincipal UserDetails userDetails) {
+        TravelPlanResponseDTO responseDTO = planService.findById(planId, userDetails.getUsername());
         return ResponseEntity.ok(responseDTO);
     }
 
     // 특정 사용자의 모든 여행 계획 조회
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<TravelPlanResponseDTO>> getPlanByUserId(@PathVariable Long userId) {
-        List<TravelPlanResponseDTO> responseDTOList = planService.findByUserId(userId);
+    public ResponseEntity<List<TravelPlanResponseDTO>> getPlanByUserId(@PathVariable Long userId, @AuthenticationPrincipal UserDetails userDetails) {
+        List<TravelPlanResponseDTO> responseDTOList = planService.findByUserId(userId, userDetails.getUsername());
         return ResponseEntity.ok(responseDTOList);
     }
 
     // 여행 계획 수정
     @PutMapping("/{planId}")
-    public ResponseEntity<TravelPlanResponseDTO> updatePlan(@PathVariable Long planId, @Valid @RequestBody TravelPlanRequestDTO requestDTO) {
-        TravelPlanResponseDTO responseDTO = planService.update(planId, requestDTO);
+    public ResponseEntity<TravelPlanResponseDTO> updatePlan(@PathVariable Long planId, @Valid @RequestBody TravelPlanRequestDTO requestDTO, @AuthenticationPrincipal UserDetails userDetails) {
+        TravelPlanResponseDTO responseDTO = planService.update(planId, requestDTO, userDetails.getUsername());
         return ResponseEntity.ok(responseDTO);
     }
 
     // 여행 계획 삭제
     @DeleteMapping("/{planId}")
-    public ResponseEntity<TravelPlanResponseDTO> deletePlan(@PathVariable Long planId) {
-        planService.delete(planId);
+    public ResponseEntity<TravelPlanResponseDTO> deletePlan(@PathVariable Long planId, @AuthenticationPrincipal UserDetails userDetails) {
+        planService.delete(planId, userDetails.getUsername());
         return ResponseEntity.noContent().build(); // 삭제 성공 시 204 No Content 응답
     }
 
     // 계획에 장소 추가
     @PostMapping("/{planId}/places")
-    public ResponseEntity<Void> addPlace(@PathVariable Long planId, @Valid @RequestBody AddPlaceRequestDTO requestDTO) {
-        planService.addPlaceToPlan(planId, requestDTO);
+    public ResponseEntity<Void> addPlace(@PathVariable Long planId, @Valid @RequestBody AddPlaceRequestDTO requestDTO, @AuthenticationPrincipal UserDetails userDetails) {
+        planService.addPlaceToPlan(planId, requestDTO, userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     // 계획에서 장소 삭제
     @DeleteMapping("/{planId}/places/{planPlaceId}")
-    public ResponseEntity<Void> removePlace(@PathVariable Long planId, @PathVariable Long planPlaceId) {
-        planService.removePlaceFromPlan(planId, planPlaceId);
+    public ResponseEntity<Void> removePlace(@PathVariable Long planId, @PathVariable Long planPlaceId, @AuthenticationPrincipal UserDetails userDetails) {
+        planService.removePlaceFromPlan(planId, planPlaceId, userDetails.getUsername());
         return ResponseEntity.noContent().build();
     }
 
@@ -75,8 +77,9 @@ public class PlanController {
     @PutMapping("/{planId}/places/sequence")
     public ResponseEntity<Void> updatePlacesSequence(
             @PathVariable Long planId,
-            @RequestBody List<UpdatePlaceSequenceDTO> sequenceDTOs) {
-        planService.updatePlacesSequence(planId, sequenceDTOs);
+            @RequestBody List<UpdatePlaceSequenceDTO> sequenceDTOs,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        planService.updatePlacesSequence(planId, sequenceDTOs, userDetails.getUsername());
         return ResponseEntity.ok().build();
     }
 
@@ -84,8 +87,9 @@ public class PlanController {
     @PostMapping("/{planId}/places/bulk")
     public ResponseEntity<Void> addPlacesBulk(
             @PathVariable Long planId,
-            @Valid @RequestBody List<AddPlaceRequestDTO> requestDTOs) {
-        planService.addPlacesToPlanBulk(planId, requestDTOs);
+            @Valid @RequestBody List<AddPlaceRequestDTO> requestDTOs,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        planService.addPlacesToPlanBulk(planId, requestDTOs, userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -93,8 +97,8 @@ public class PlanController {
     @PostMapping("/{recommendPlanId}/copy")
     public ResponseEntity<Long> copyRecommendPlan(
             @PathVariable Long recommendPlanId,
-            @RequestParam Long userId) {
-        Long newPlanId = planService.copyPlan(recommendPlanId, userId);
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long newPlanId = planService.copyPlan(recommendPlanId, userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(newPlanId);
     }
 
