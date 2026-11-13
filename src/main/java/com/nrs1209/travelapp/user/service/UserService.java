@@ -72,9 +72,14 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDTO modify (Long Id, UserUpdateRequestDTO userUpdateRequestDTO) {
+    public UserResponseDTO modify (Long Id, UserUpdateRequestDTO userUpdateRequestDTO, String username) {
         User user = userRepository.findById(Id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        // 내 계정 아닐 시 403 차단
+        if (!user.getUserName().equals(username)) {
+            throw new org.springframework.security.access.AccessDeniedException("본인의 회원 정보만 수정할 수 있습니다.");
+        }
 
         if (userUpdateRequestDTO.getEmail() != null && !userUpdateRequestDTO.getEmail().isBlank() && !user.getEmail().equals(userUpdateRequestDTO.getEmail())) {
             if (userRepository.findByEmail(userUpdateRequestDTO.getEmail()).isPresent()) {
@@ -95,10 +100,15 @@ public class UserService {
                 .build();
     }
 
-    public UserResponseDTO getUserById(Long userId) {
+    public UserResponseDTO getUserById(Long userId, String username) {
         // DB에서 유저 찾기
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없음"));
+
+        // 내 계정 아닐 시 403 차단
+        if (!user.getUserName().equals(username)) {
+            throw new org.springframework.security.access.AccessDeniedException("본인의 회원 정보만 조회할 수 있습니다.");
+        }
 
         // DTO로 변환해 리턴
         return UserResponseDTO.builder()

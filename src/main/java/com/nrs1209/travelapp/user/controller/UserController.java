@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -39,14 +41,17 @@ public class UserController {
     @PutMapping("/{userId}")
     public ResponseEntity<UserResponseDTO> modify(
             @PathVariable Long userId,
-            @Valid @RequestBody UserUpdateRequestDTO updateRequestDTO) {
-        UserResponseDTO responseDTO = userService.modify(userId, updateRequestDTO);
+            @Valid @RequestBody UserUpdateRequestDTO updateRequestDTO,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UserResponseDTO responseDTO = userService.modify(userId, updateRequestDTO, userDetails.getUsername());
         return ResponseEntity.ok(responseDTO);
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponseDTO> getMe(@RequestParam Long userId) {
-        UserResponseDTO responseDTO = userService.getUserById(userId);
+    public ResponseEntity<UserResponseDTO> getMe(
+            @RequestParam Long userId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UserResponseDTO responseDTO = userService.getUserById(userId, userDetails.getUsername());
         return ResponseEntity.ok(responseDTO);
     }
 
