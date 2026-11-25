@@ -7,7 +7,10 @@ import com.nrs1209.travelapp.plan.entity.Plan;
 import com.nrs1209.travelapp.plan.entity.PlanPlace;
 import com.nrs1209.travelapp.plan.repository.PlanPlaceRepository;
 import com.nrs1209.travelapp.plan.repository.PlanRepository;
+import com.nrs1209.travelapp.user.entity.User;
+import com.nrs1209.travelapp.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -21,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GeminiService {
@@ -31,13 +35,20 @@ public class GeminiService {
     private final PlanRepository planRepository;
     private final PlanPlaceRepository planPlaceRepository;
     private final PlaceRepository placeRepository;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final UserRepository userRepository;
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Transactional
-    public Long generateAIPlan(String cityName, int days, String theme, Long userId) {
+    public Long generateAIPlan(String cityName, int days, String theme, String username) {
+        if (days < 1 || days > 10) {
+            throw new IllegalArgumentException("여행 일수는 1일 이상 10일 이하로만 생성할 수 있습니다.");
+        }
+        User currentUser = userRepository.findByUserName(username)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
         // 엔드포인트
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
 
         List<Place> allPlaces = placeRepository.findAll();
         List<Place> cityPlaces = allPlaces.stream()
@@ -68,6 +79,7 @@ public class GeminiService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("x-goog-api-key", apiKey);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
         try {
@@ -91,7 +103,7 @@ public class GeminiService {
                     .title("[AI 추천]" + cityName + " " + days + "일 여행 코스")
                     .startDate(java.time.LocalDate.now())
                     .endDate(java.time.LocalDate.now().plusDays(days - 1))
-                    .userId(userId)
+                    .userId(currentUser.getId())
                     .isPublic(false)
                     .build();
 
@@ -125,7 +137,7 @@ public class GeminiService {
             planPlaceRepository.saveAll(planPlaces);
             return savedPlan.getId();
         } catch (Exception e) {
-            e.printStackTrace();;
+            log.error("[GeminiService] AI 일정 생성 중 오류 발생", e);
             throw new RuntimeException("AI 일정 생성 실패: " + e.getMessage());
         }
     }

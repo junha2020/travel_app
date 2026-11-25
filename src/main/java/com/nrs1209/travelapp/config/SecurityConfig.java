@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico").permitAll()
                         .requestMatchers("/api/users/login", "/api/users/register", "/api/users/find-username", "/api/users/reset-password").permitAll()
+                        .requestMatchers("/api/places/search/google").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/places/**", "/api/external/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/external/flights/**").permitAll()
                         .anyRequest().authenticated()

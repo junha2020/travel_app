@@ -108,8 +108,8 @@ public class PlanController {
             @RequestParam String cityName,
             @RequestParam int days,
             @RequestParam String theme,
-            @RequestParam Long userId) {
-        Long newPlanId = geminiService.generateAIPlan(cityName, days, theme, userId);
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long newPlanId = geminiService.generateAIPlan(cityName, days, theme, userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(newPlanId);
     }
 }

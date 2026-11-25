@@ -21,6 +21,7 @@ public class GooglePlacesDTO {
         private Double rating;
         private Integer userRatingCount;
         private List<Photo> photos;
+        private DisplayName editorialSummary;
     }
 
     @Data

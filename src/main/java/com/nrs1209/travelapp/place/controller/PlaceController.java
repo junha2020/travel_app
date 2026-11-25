@@ -66,4 +66,13 @@ public class PlaceController {
         List<PlaceResponseDTO> responseDTOList = googlePlacesService.searchPlacesWithAutoCache(query);
         return ResponseEntity.ok(responseDTOList);
     }
+
+    @GetMapping("/photo")
+    public ResponseEntity<byte[]> getPlacePhoto(@RequestParam String name) {
+        byte[] imageBytes = googlePlacesService.fetchPlacePhoto(name);
+        return ResponseEntity.ok()
+                .header("Content-Type", "image/jpeg")
+                .header("Cache-Control", "public, max-age=604800")
+                .body(imageBytes);
+    }
 }

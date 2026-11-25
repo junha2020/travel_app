@@ -59,7 +59,7 @@ public class GooglePlacesService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("X-Goog-Api-Key", googleApiKey);
-            headers.set("X-Goog-FieldMask", "places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.photos");
+            headers.set("X-Goog-FieldMask", "places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.photos,places.editorialSummary");
 
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("textQuery", query);
@@ -73,22 +73,33 @@ public class GooglePlacesService {
                 List <Place> newPlacesToSave = new ArrayList<>();
 
                 for (GooglePlacesDTO.PlaceItem item : response.getPlaces()) {
+                    if (item.getRating() == null || item.getPhotos() == null || item.getPhotos().isEmpty()) {
+                        continue;
+                    }
+
                     String name = item.getDisplayName() != null ? item.getDisplayName().getText() : "이름 없음";
+
+                    if (!placeRepository.findByNameContainingIgnoreCase(name).isEmpty()) {
+                        continue;
+                    }
+
                     String address = item.getFormattedAddress() != null ? item.getFormattedAddress() : "";
                     Double lat = item.getLocation() != null ? item.getLocation().getLatitude() : null;
                     Double lng = item.getLocation() != null ? item.getLocation().getLongitude() : null;
-                    Double rating = item.getRating() != null ? item.getRating() : 4.5;
+                    Double rating = item.getRating();
 
-                    // 구글 고화질 사진 URL 조립
-                    String imageUrl = "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=800&q=80"; // fallback
-                    if (item.getPhotos() != null && !item.getPhotos().isEmpty()) {
-                        String photoName = item.getPhotos().get(0).getName();
-                        imageUrl = String.format("https://places.googleapis.com/v1/%s/media?maxHeightPx=800&maxWidthPx=800&key=%s", photoName, googleApiKey);
-                    }
+                    // 이미지 부분 API 키 노출 방지를 위해 백엔드 프록시 경로로 저장
+                    String photoName = item.getPhotos().get(0).getName();
+                    String imageUrl = "/api/places/photo?name=" + photoName;
+
+                    // 구글 공식 한 줄 설명 사용. 없으면 주소 표시
+                    String description = (item.getEditorialSummary() != null && item.getEditorialSummary().getText() != null)
+                            ? item.getEditorialSummary().getText()
+                            : address;
 
                     // 카테고리 판별
                     String category = "관광지";
-                    if (query.contains("식당")) {
+                    if (query.contains("식당") || query.contains("맛집")) {
                         category = "맛집";
                     } else if (query.contains("호텔")) {
                         category = "숙소";
@@ -100,7 +111,7 @@ public class GooglePlacesService {
                             .latitude(lat)
                             .longitude(lng)
                             .imageUrl(imageUrl)
-                            .description(String.format("구글 실시간 평점 * %.1f | %s", rating, address))
+                            .description(description)
                             .category(category)
                             .rating(rating)
                             .build();
@@ -119,5 +130,15 @@ public class GooglePlacesService {
         }
 
         return List.of();
+    }
+
+    public byte[] fetchPlacePhoto(String photoName) {
+        if (photoName == null || !photoName.startsWith("places/")) {
+            throw new IllegalArgumentException("올바르지 않은 사진 경로입니다.");
+        }
+
+        String photoUrl = String.format("https://places.googleapis.com/v1/%s/media?maxHeightPx=800&maxWidthPx=800&key=%s", photoName, googleApiKey);
+
+        return restTemplate.getForObject(photoUrl, byte[].class);
     }
 }

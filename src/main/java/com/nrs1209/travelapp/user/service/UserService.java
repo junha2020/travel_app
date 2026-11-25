@@ -92,6 +92,13 @@ public class UserService {
             user.setNickName(userUpdateRequestDTO.getNickName());
         }
 
+        if (userUpdateRequestDTO.getNewPassword() != null && !userUpdateRequestDTO.getNewPassword().isBlank()) {
+            if (userUpdateRequestDTO.getCurrentPassword() == null || !passwordEncoder.matches(userUpdateRequestDTO.getCurrentPassword(), user.getPassword())) {
+                throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+            }
+            user.setPassword(passwordEncoder.encode(userUpdateRequestDTO.getNewPassword()));
+        }
+
         return UserResponseDTO.builder()
                 .userid(user.getId())
                 .userName(user.getUserName())
