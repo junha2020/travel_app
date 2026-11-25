@@ -9,9 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -32,6 +33,7 @@ public class GooglePlacesService {
     private String googleApiKey;
 
     private static final String GOOGLE_PLACES_SEARCH_URL = "https://places.googleapis.com/v1/places:searchText";
+    private static final Pattern PHOTO_NAME_PATTERN = Pattern.compile("^places/[A-Za-z0-9_-]+/photos/[A-Za-z0-9_-]+$");
 
     /**
      * DB에 있는지 먼저 조회 -> 없으면 API 호출해 DB에 저장
@@ -133,12 +135,20 @@ public class GooglePlacesService {
     }
 
     public byte[] fetchPlacePhoto(String photoName) {
-        if (photoName == null || !photoName.startsWith("places/")) {
+        if (photoName == null || !PHOTO_NAME_PATTERN.matcher(photoName).matches()) {
             throw new IllegalArgumentException("올바르지 않은 사진 경로입니다.");
         }
 
-        String photoUrl = String.format("https://places.googleapis.com/v1/%s/media?maxHeightPx=800&maxWidthPx=800&key=%s", photoName, googleApiKey);
+        if (googleApiKey == null || googleApiKey.isBlank()) {
+            throw new IllegalStateException("Google Places API 키가 설정되지 않았습니다.");
+        }
 
-        return restTemplate.getForObject(photoUrl, byte[].class);
+        String photoUrl = String.format("https://places.googleapis.com/v1/%s/media?maxHeightPx=800&maxWidthPx=800", photoName);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Goog-Api-Key", googleApiKey);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange(photoUrl, HttpMethod.GET, entity, byte[].class).getBody();
     }
 }

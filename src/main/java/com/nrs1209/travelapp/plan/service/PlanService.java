@@ -1,4 +1,3 @@
-// TODO [2단계]: findById() 및 findByUserId()의 PlaceInPlanDTO 빌더 매핑에 .category(planPlace.getPlace().getCategory()) 및 .imageUrl(planPlace.getPlace().getImageUrl()) 주입하기
 package com.nrs1209.travelapp.plan.service;
 
 import com.nrs1209.travelapp.place.entity.Place;
@@ -14,8 +13,6 @@ import com.nrs1209.travelapp.plan.entity.Plan;
 import com.nrs1209.travelapp.plan.repository.PlanRepository;
 import com.nrs1209.travelapp.user.entity.User;
 import com.nrs1209.travelapp.user.repository.UserRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,8 +29,6 @@ public class PlanService {
     private final PlaceRepository placeRepository;
     private final PlanPlaceRepository planPlaceRepository;
 
-    @PersistenceContext
-    private final EntityManager entityManager; // 네이티브 쿼리 실행용 엔티티 매니저 주입
     private final UserRepository userRepository;
 
     @Transactional
@@ -82,7 +77,7 @@ public class PlanService {
     @Transactional
     public void delete(Long Id, String username) {
         // 계획 조회
-        Plan plan = validatePlanOwnership(Id, username);
+        validatePlanOwnership(Id, username);
 
         // 내 계획이 맞으니 안전하게 삭제
         planPlaceRepository.deleteByPlan_Id(Id);

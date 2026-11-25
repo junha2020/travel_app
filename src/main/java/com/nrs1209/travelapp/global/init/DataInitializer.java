@@ -1,14 +1,12 @@
 package com.nrs1209.travelapp.global.init;
 
 import com.nrs1209.travelapp.external.google.service.GooglePlacesService;
-import com.nrs1209.travelapp.place.entity.Place;
 import com.nrs1209.travelapp.place.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -34,7 +32,13 @@ public class DataInitializer implements CommandLineRunner {
                 googlePlacesService.searchPlacesWithAutoCache(query);
             }
 
-            log.info("[DataInitializer] Google Places 실데이터 적재 완료! 총 {}개 장소 저장됨.", placeRepository.count());
+            long totalCount = placeRepository.count();
+
+            if (totalCount == 0) {
+                log.warn("[DataInitializer] 장소 초기 적재 결과가 0건입니다! google.places.api.key 설정이나 네트워크 상태를 확인하세요.");
+            } else {
+                log.info("[DataInitializer] Google Places 실데이터 적재 완료! 총 {}개 장소 저장됨.", totalCount);
+            }
         }
     }
 }

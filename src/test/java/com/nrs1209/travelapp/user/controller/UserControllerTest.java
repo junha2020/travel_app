@@ -5,6 +5,7 @@ import com.nrs1209.travelapp.global.security.JwtUtil;
 import com.nrs1209.travelapp.plan.entity.Plan;
 import com.nrs1209.travelapp.plan.repository.PlanRepository;
 import com.nrs1209.travelapp.user.dto.UserSignUpRequestDTO;
+import com.nrs1209.travelapp.user.dto.UserUpdateRequestDTO;
 import com.nrs1209.travelapp.user.entity.User;
 import com.nrs1209.travelapp.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +23,9 @@ import java.time.LocalDate;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -42,6 +46,9 @@ public class UserControllerTest {
 
     @Autowired
     private PlanRepository planRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Test
     @DisplayName("회원가입 테스트 - 성공")
@@ -112,9 +119,9 @@ public class UserControllerTest {
         String attackerToken = jwtUtil.generateToken(attacker.getUserName());
         String victimToken = jwtUtil.generateToken(victim.getUserName());
 
-        // 1단계: 토큰 없이 삭제 시도 -> 403 에러
+        // 1단계: 토큰 없이 삭제 시도 -> 401 에러
         mockMvc.perform(delete("/api/plans/" + victimPlan.getId()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         // 2단계: 해커 토큰으로 남의 일정 삭제(BOLA) -> validatePlanOwnership에서 403 에러
         mockMvc.perform(delete("/api/plans/" + victimPlan.getId())
@@ -125,5 +132,52 @@ public class UserControllerTest {
         mockMvc.perform(delete("/api/plans/" + victimPlan.getId())
                 .header("Authorization", "Bearer " + victimToken))
                 .andExpect(status().isNoContent());
+    }
+
+    // 사진 프록시 정규식 화이트리스트 검증 및 비밀번호 변경 성공/실패 테스트
+    @Test
+    @DisplayName("보안 테스트 - 사진 프록시 악성 경로(Path Traversal) 입력 시 400 차단")
+    public void testPlacePhoto_InvalidPathBlocked() throws Exception {
+        mockMvc.perform(get("/api/places/photo")
+                .param("name", "places/../../hack?key=evil"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("올바르지 않은 사진 경로입니다."));
+    }
+
+    @Test
+    @DisplayName("기능/보안 테스트 - 비밀번호 변경 시 현재 비번 불일치 400 차단 및 일치 시 200 성공")
+    public void testChangePassword_ValidationAndSuccess() throws Exception {
+        // given: BCrypt로 암호화된 유저 저장 및 토큰 발급
+        User user = userRepository.save(User.builder()
+                .userName("pw_test_user")
+                .password(passwordEncoder.encode("oldpassword123"))
+                .email("pw_test@test.com")
+                .nickName("비번테스터")
+                .build());
+
+        String token = jwtUtil.generateToken(user.getUserName());
+
+        // 1단계: 현재 비밀번호를 틀리게 입력 -> 400 Bad Request + JSON 메시지 확인
+        UserUpdateRequestDTO wrongDto = new UserUpdateRequestDTO();
+        wrongDto.setCurrentPassword("wrongpassword");
+        wrongDto.setNewPassword("newpassword123");
+
+        mockMvc.perform(put("/api/users/" + user.getId())
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(wrongDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("현재 비밀번호가 일치하지 않습니다."));
+
+        // 2단계: 현재 비밀번호 일치 + 새 비밀번호 (8자 이상) 입력 -> 200 OK 성공!
+        UserUpdateRequestDTO validDto = new UserUpdateRequestDTO();
+        validDto.setCurrentPassword("oldpassword123");
+        validDto.setNewPassword("newpassword123");
+
+        mockMvc.perform(put("/api/users/" + user.getId())
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validDto)))
+                .andExpect(status().isOk());
     }
 }
